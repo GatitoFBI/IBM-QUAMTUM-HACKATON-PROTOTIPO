@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="es">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Q-Niño</title>
+<meta name="description" content="Simulador editable de Grover Adaptive Search con Qiskit para asignar brigadas ante El Niño.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="css/styles.css">
+
+<div class="band" aria-hidden="true"></div>
+<header class="top gut"><div class="wrap">
+  <div class="brand"><span class="chakana" aria-hidden="true"></span>
+    <div><h1>Q-Niño · Simulador de Grover</h1><div class="sub">Qiskit Fall Fest 2026 · PUCP · Quantum Hub Perú · IEEE CS PUCP · Reto NTT DATA</div></div></div>
+  <div class="row"><span class="engine" id="engine" title="Qué está calculando los resultados"><i></i><span id="engineTxt">Detectando motor…</span></span><button class="hbtn" id="theme" type="button">Tema</button></div>
+</div></header>
+
+<nav class="menu gut" aria-label="Secciones"><div class="wrap" role="tablist" id="menu">
+  <button role="tab" data-v="simulador">Simulador</button>
+  <button role="tab" data-v="animacion">Grover paso a paso</button>
+  <button role="tab" data-v="calculadoras">Calculadoras</button>
+  <button role="tab" data-v="comparador">Comparador gráfico</button>
+  <button role="tab" data-v="ejercicios">Ejercicios</button>
+  <button role="tab" data-v="glosario">Glosario y límites</button>
+</div></nav>
+
+<main class="gut"><div class="wrap">
+
+<!-- ============ SIMULADOR ============ -->
+<section class="view" id="v-simulador">
+  <div class="shead"><span class="eyebrow">Problema de asignación cuadrática (QAP) · El Niño costero</span>
+    <h2>¿Qué brigada va a qué zona?</h2>
+    <p>Edita las brigadas, las zonas y las matrices: F = sinergia entre brigadas (cuánto deben coordinarse) y D = horas de viaje entre zonas. Al resolver, la fuerza bruta revisa las N! asignaciones y la búsqueda adaptativa de Grover busca el mínimo de C(p) = Σ<sub>i&lt;k</sub> F<sub>ik</sub>·D<sub>p(i)p(k)</sub>. Todo lo que cambies respecto a los datos cargados queda marcado en naranja y registrado en «Cambios».</p></div>
+
+  <div class="g2">
+    <div class="card accent">
+      <div class="row between"><h3 id="dataTitle">Datos</h3><div class="row"><span class="eyebrow">N</span><div class="seg" id="nSel"></div></div></div>
+      <div class="g2e">
+        <div class="names" id="names"></div>
+        <div class="row" style="align-content:start">
+          <label class="f">Semilla <input type="number" id="seed" value="42" min="0" max="99999" style="width:96px"></label>
+          <label class="f">Repeticiones de Grover <input type="number" id="reps" value="10" min="1" max="20" style="width:96px"></label>
+        </div>
+      </div>
+      <h3>F · sinergia entre brigadas <span class="muted small">(simétrica: al editar F[i][k] también cambia F[k][i])</span></h3>
+      <div class="scroll"><table class="mat" id="matF"></table></div>
+      <h3>D · horas entre zonas</h3>
+      <div class="scroll"><table class="mat" id="matD"></table></div>
+      <p class="err" id="err" hidden></p>
+      <div class="row">
+        <button class="btn main" id="solve" type="button">Resolver con Grover</button>
+        <button class="btn" id="randomize" type="button">Datos aleatorios</button>
+        <button class="btn warn" id="restore" type="button">Restaurar datos cargados</button>
+        <button class="btn" id="export" type="button">Copiar datos para Qiskit</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="row between"><h3>Cambios respecto a los datos cargados</h3><span class="badge o" id="nChanges">0</span></div>
+      <p class="muted small" id="baseName"></p>
+      <div class="changes" id="changes"></div>
+      <h3>Mapa de la asignación</h3>
+      <svg class="mapbox" id="map" viewBox="0 0 300 470" width="100%" role="img" aria-label="Mapa esquemático de la costa peruana"></svg>
+      <p class="muted small">Esquema de la costa, no a escala. Grosor de cada línea = sinergia F entre las brigadas de esas zonas.</p>
+    </div>
+  </div>
+
+  <div class="card" id="results" hidden>
+    <div class="row between"><h3>Resultado</h3><span class="badge q" id="resEngine"></span></div>
+    <div class="kpis" id="kpis"></div>
+    <div class="g2e">
+      <div><h3>Mejor asignación encontrada por Grover</h3><div class="assign" id="assign"></div></div>
+      <div><h3>Pasos de la solución</h3><ol class="steps" id="steps"></ol></div>
+    </div>
+    <div class="row"><button class="btn main" type="button" data-go="animacion">Ver la animación de esta ejecución →</button><button class="btn" type="button" data-go="comparador">Comparar con N! →</button></div>
+  </div>
+</section>
+
+<!-- ============ ANIMACIÓN ============ -->
+<section class="view" id="v-animacion" hidden>
+  <div class="shead"><span class="eyebrow">Dürr–Høyer + BBHT</span><h2>Grover paso a paso</h2>
+    <p>Se toma una asignación al azar como umbral; el oráculo marca con fase −1 las que cuestan menos; la difusión (inversión sobre el promedio) amplifica esas amplitudes; se mide, y si salió algo mejor el umbral baja. Se anima la última ejecución del Simulador.</p></div>
+  <div class="card">
+    <div class="row">
+      <label class="f">Ejecución <select id="run"></select></label>
+      <button class="btn main" id="play" type="button">▶ Reproducir</button>
+      <button class="btn" id="stepB" type="button">Paso →</button>
+      <button class="btn" id="restart" type="button">↺ Reiniciar</button>
+      <label class="f">Velocidad <select id="speed"><option value="1.6">lenta</option><option value="1" selected>normal</option><option value="0.4">rápida</option></select></label>
+      <span class="badge q" id="animEngine"></span>
+    </div>
+    <div class="stage"><span class="n" id="stN">0</span><div class="t"><b id="stT">Pulsa Reproducir</b><span id="stS"></span></div></div>
+    <div class="pipe" id="pipe"></div>
+  </div>
+  <div class="g2">
+    <div class="card">
+      <div class="row between"><h3>Amplitud de cada índice</h3><span class="muted small" id="ampNote"></span></div>
+      <div class="amps" id="amps"></div>
+      <div class="legend"><span><i style="background:var(--otono)"></i>marcados (cuestan menos que el umbral)</span><span><i style="background:var(--qiskit)"></i>umbral actual</span><span><i style="background:var(--resto)"></i>resto</span><span><i style="background:var(--void)"></i>índices sin permutación</span><span><i style="border-top:2px dashed var(--qiskit-2);height:0;border-radius:0"></i>promedio</span></div>
+      <p id="meas" style="font-weight:600;min-height:1.6em"></p>
+    </div>
+    <div class="card">
+      <h3>Umbral de costo vs consultas al oráculo</h3>
+      <svg id="stair" viewBox="0 0 420 220" width="100%" role="img" aria-label="Evolución del umbral"></svg>
+      <div class="kpis" style="grid-template-columns:repeat(3,minmax(0,1fr))"><div class="kpi"><b id="sQ">0</b><span>consultas</span></div><div class="kpi"><b id="sB">—</b><span>mejor costo</span></div><div class="kpi o"><b id="sP">—</b><span>P(medir un marcado)</span></div></div>
+      <div class="meter"><i id="budBar" style="width:0"></i><b id="budNF"></b></div>
+      <p class="muted small" id="budTxt"></p>
+      <div class="log" id="log"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CALCULADORAS ============ -->
+<section class="view" id="v-calculadoras" hidden>
+  <div class="shead"><span class="eyebrow">Herramientas</span><h2>Calculadoras especializadas</h2><p>Usan los datos actuales del Simulador.</p></div>
+  <div class="subtabs" id="ctabs">
+    <button data-c="costo" aria-selected="true">Costo de una asignación</button>
+    <button data-c="qubits">Qubits y presupuesto</button>
+    <button data-c="iter">Iteraciones de Grover</button>
+    <button data-c="indice">Índice ↔ asignación</button>
+  </div>
+  <div class="card" data-cpanel="costo">
+    <h3>Elige una zona para cada brigada</h3><div class="row" id="cAsg"></div>
+    <div class="scroll"><table class="t" id="cPairs"></table></div>
+  </div>
+  <div class="card" data-cpanel="qubits" hidden>
+    <div class="row"><label class="f">N (brigadas y zonas) <input type="number" id="qN" value="6" min="2" max="20" style="width:90px"></label></div>
+    <div class="kpis" id="qOut"></div><div class="formula" id="qF"></div>
+  </div>
+  <div class="card" data-cpanel="iter" hidden>
+    <div class="row"><label class="f">Umbral (de los datos actuales) <select id="iU"></select></label><label class="f" style="min-width:220px;flex:1">Iteraciones j = <b id="iJv" class="mono">1</b><input type="range" id="iJ" min="0" max="8" value="1"></label></div>
+    <div class="g2e"><div class="amps" id="iAmps" style="height:200px"></div>
+      <div class="card" style="padding:0;border:0"><div class="kpis" style="grid-template-columns:repeat(2,minmax(0,1fr))"><div class="kpi o"><b id="iP">—</b><span>P(marcado) simulada</span></div><div class="kpi"><b id="iT">—</b><span>teoría sin²((2j+1)θ)</span></div></div>
+        <svg id="iCurve" viewBox="0 0 420 170" width="100%" role="img" aria-label="Probabilidad por iteraciones"></svg><p class="muted small" id="iTxt"></p></div></div>
+  </div>
+  <div class="card" data-cpanel="indice" hidden>
+    <div class="row"><label class="f">Índice (0 … N!−1) <input type="number" id="xI" value="0" min="0" style="width:110px"></label><span class="muted">o</span><div class="row" id="xAsg"></div></div>
+    <div class="formula" id="xOut"></div>
+  </div>
+</section>
+
+<!-- ============ COMPARADOR ============ -->
+<section class="view" id="v-comparador" hidden>
+  <div class="shead"><span class="eyebrow">Complejidad de consultas</span><h2>Fuerza bruta vs Grover</h2><p id="cmpIntro"></p></div>
+  <div class="g2">
+    <div class="card"><h3>Consultas (escala logarítmica)</h3><svg id="logc" viewBox="0 0 560 300" width="100%" role="img" aria-label="Consultas clásico vs Grover"></svg>
+      <div class="legend"><span><i style="background:var(--bad)"></i>fuerza bruta: N!</span><span><i style="background:var(--qiskit)"></i>presupuesto de Grover</span><span><i style="background:var(--otono)"></i>medido con Qiskit</span><span><i style="background:var(--ink)"></i>tu última ejecución</span></div></div>
+    <div class="card"><h3>Resultados de referencia calculados con Qiskit</h3><div class="scroll"><table class="t" id="rtab"></table></div>
+      <p class="muted small">La métrica que importa son las consultas al oráculo. El tiempo es de simulación en una laptop y crece con 2<sup>qubits</sup>; no representa una computadora cuántica real.</p></div>
+  </div>
+</section>
+
+<!-- ============ EJERCICIOS ============ -->
+<section class="view" id="v-ejercicios" hidden>
+  <div class="shead"><span class="eyebrow">Banco de casos</span><h2>Ejercicios resueltos</h2><p>Cada caso se carga en el Simulador como datos base: desde ahí puedes editarlo y ver qué cambia.</p></div>
+  <div class="g3" id="exs"></div>
+</section>
+
+<!-- ============ GLOSARIO ============ -->
+<section class="view" id="v-glosario" hidden>
+  <div class="shead"><span class="eyebrow">Referencia</span><h2>Glosario, fórmulas y límites</h2></div>
+  <div class="g2e">
+    <div class="card"><h3>Glosario</h3><dl class="gl" id="gl"></dl></div>
+    <div class="card"><h3>Cómo usamos Qiskit</h3>
+      <ul style="margin:0;padding-left:20px;display:grid;gap:6px">
+        <li><code>QuantumCircuit</code> con <code>h</code>, <code>x</code> y <code>mcx</code>: superposición y difusión 2|s⟩⟨s| − I.</li>
+        <li><code>DiagonalGate</code>: oráculo de fase −1 sobre los índices que mejoran el umbral.</li>
+        <li><code>Statevector</code>: amplitudes exactas y probabilidades para medir.</li>
+        <li>Backend <code>api.py</code> (FastAPI) para ejecutar Qiskit en vivo con los datos editados.</li>
+      </ul>
+      <h3>Circuito para N = 3, una iteración (salida de Qiskit)</h3><pre class="code" id="circ"></pre></div>
+    <div class="card"><h3>Lo que esto es y lo que no es</h3><ol class="steps">
+      <li><span><b>Oráculo idealizado.</b> Para marcar estados, la simulación revisa la tabla de costos (N! evaluaciones). En hardware real el oráculo debe calcular el costo dentro del circuito con aritmética reversible. Por eso medimos <b>consultas</b>, no tiempo.</span></li>
+      <li><span><b>El tiempo simulado no es el de una QPU:</b> simular 2<sup>qubits</sup> amplitudes crece exponencialmente.</span></li>
+      <li><span><b>La ventaja aparece desde N ≈ 7:</b> para N ≤ 6 el presupuesto de Dürr–Høyer (constante 22,5) supera a N!.</span></li>
+      <li><span><b>Hoy no corre en hardware real a esta escala:</b> el ruido impediría un oráculo tan profundo.</span></li>
+      <li><span><b>Datos de prueba:</b> faltan las matrices qap10 para validar los óptimos de control (24, 32 y 340).</span></li>
+      <li><span><b>Versión honesta:</b> sin la parada anticipada <code>if not marcados: break</code>; cada ejecución termina al agotar el presupuesto.</span></li>
+    </ol></div>
+    <div class="card"><h3>Fórmulas</h3><div class="formula">C(p) = Σ<sub>i&lt;k</sub> F[i][k] · D[p(i)][p(k)]<br>qubits = ⌈log₂(N!)⌉ &nbsp;(one-hot: N²)<br>presupuesto = 22,5·√M + 1,4·log₂²M, &nbsp;M = N!<br>θ = asin(√(k/S)), &nbsp;P(j) = sin²((2j+1)θ)<br>j óptimo ≈ π/(4θ) − ½<br>BBHT: j ~ U{0, …, ⌈m⌉−1}; sin mejora m ← min(1,2·m, √M)</div></div>
+  </div>
+</section>
+
+</div></main>
+<footer class="gut"><div class="wrap" id="foot"></div></footer>
+<div class="toast" id="toast" role="status"></div>
+
+<script src="datos.js"></script>
+<script src="js/grover.js"></script>
+<script src="js/app.js"></script>

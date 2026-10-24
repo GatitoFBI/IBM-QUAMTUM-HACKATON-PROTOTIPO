@@ -1,0 +1,5 @@
+qiskit==2.6.1
+numpy
+pytest
+fastapi
+uvicorn
