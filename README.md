@@ -296,6 +296,8 @@ El indicador de la cabecera dice siempre qué motor calculó el resultado:
 
 **Diseño:** colores de Qiskit / IBM Quantum (morado), el naranja otoñal del Fall Fest y el azul PUCP, con la tipografía IBM Plex. La identidad peruana se ve en la chakana, la banda textil y el mapa de la costa. Los valores de color son aproximados y se ajustan en el primer bloque de `css/styles.css`.
 
+**Logo y animaciones:** el logo (una ruta entre montañas con un qubit en la cumbre, `img/logo.svg`) se dibuja al cargar y su qubit orbita. Hay transiciones al cambiar de sección, tarjetas que entran en cascada, contadores en los resultados, un destello en cada celda editada, el mapa que se enciende al resolver y un pulso en cada etapa de Grover. Por defecto respetan la opción «reducir movimiento» del sistema operativo. El botón **«Animaciones»** de la cabecera las enciende o apaga, y la elección se recuerda.
+
 ## 9. Cómo ejecutarlo
 
 ```bash

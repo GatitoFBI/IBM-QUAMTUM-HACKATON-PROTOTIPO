@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <rect width="512" height="512" rx="96" fill="#0B3C5D"/>
+  <!-- montañas = ruta -->
+  <polyline points="70,380 170,230 240,300 330,150 442,380" fill="none" stroke="#FFFFFF" stroke-width="22" stroke-linejoin="round" stroke-linecap="round"/>
+  <!-- nodos de la ruta -->
+  <circle cx="70" cy="380" r="20" fill="#1FB5A9"/>
+  <circle cx="170" cy="230" r="20" fill="#1FB5A9"/>
+  <circle cx="240" cy="300" r="20" fill="#C8553D"/>
+  <circle cx="442" cy="380" r="20" fill="#1FB5A9"/>
+  <!-- qubit en la cumbre -->
+  <ellipse cx="330" cy="150" rx="58" ry="22" fill="none" stroke="#1FB5A9" stroke-width="9" transform="rotate(-25 330 150)"/>
+  <circle cx="330" cy="150" r="26" fill="#FFFFFF"/>
+  <circle cx="330" cy="150" r="11" fill="#1FB5A9"/>
+  <!-- base -->
+  <line x1="70" y1="430" x2="442" y2="430" stroke="#1FB5A9" stroke-width="8" stroke-linecap="round" opacity="0.6"/>
+</svg>

@@ -24,7 +24,26 @@ if (Q) Object.values(Q.instancias).forEach(i => CASOS.push({ id: "q" + i.n, nomb
   brigadas: BRIG.slice(0, n), zonas: ZON.slice(0, n), F: [...Array(n)].map(() => Array(n).fill(0)), D: [...Array(n)].map(() => Array(n).fill(0)) }));
 
 /* ---------------- Estado ---------------- */
-let base, cur, R = null, stale = false, backend = null, useBackend = false;
+let base, cur, R = null, stale = false, backend = null, useBackend = false, prevDiffs = new Set(), mapFresh = false;
+
+// Animaciones: por defecto siguen «reducir movimiento» del sistema; el botón de la cabecera lo cambia y se recuerda
+const motionPref = (() => { try { return localStorage.getItem("qnino_motion"); } catch { return null; } })();
+function setMotion(on) {
+  document.documentElement.classList.toggle("motion", on);
+  $("motion").setAttribute("aria-pressed", on); $("motion").textContent = on ? "Animaciones: sí" : "Animaciones: no";
+}
+setMotion(motionPref ? motionPref === "on" : !matchMedia("(prefers-reduced-motion: reduce)").matches);
+$("motion").onclick = () => { const on = !document.documentElement.classList.contains("motion"); setMotion(on); try { localStorage.setItem("qnino_motion", on ? "on" : "off"); } catch {} toast(on ? "Animaciones activadas" : "Animaciones desactivadas"); };
+const reduced = () => !document.documentElement.classList.contains("motion");
+// Contador para los KPIs y orden de entrada (--i) para listas y tarjetas
+function countUp(el) {
+  const target = parseFloat(el.textContent), dec = (el.textContent.split(".")[1] || "").length;
+  if (!isFinite(target) || reduced()) return;
+  const t0 = performance.now(), T = 700;
+  const step = t => { const k = Math.min(1, (t - t0) / T), e = 1 - (1 - k) ** 3; el.textContent = (target * e).toFixed(dec); if (k < 1) requestAnimationFrame(step); else el.textContent = target.toFixed(dec); };
+  requestAnimationFrame(step);
+}
+const stagger = (sel, cls = "in") => document.querySelectorAll(sel).forEach((el, i) => { el.style.setProperty("--i", i); if (cls) el.classList.add(cls); });
 
 function loadCase(c, silent) {
   base = clone({ nombre: c.nombre, brigadas: c.brigadas, zonas: c.zonas, F: c.F, D: c.D, qiskit: c.qiskit ? true : false, id: c.id });
@@ -85,7 +104,8 @@ function onChange(namesOnly) {
   const d = diffs(), n = cur.F.length, bn = base.F.length;
   $("nChanges").textContent = d.length + (d.length === 1 ? " cambio" : " cambios");
   $("baseName").textContent = `Datos cargados: ${base.nombre}`;
-  $("changes").innerHTML = d.length ? d.map(x => `<div>${esc(x)}</div>`).join("") : `<div class="none">Sin cambios: son los datos tal como se cargaron.</div>`;
+  $("changes").innerHTML = d.length ? d.map(x => `<div class="${prevDiffs.has(x) ? "" : "new"}">${esc(x)}</div>`).join("") : `<div class="none">Sin cambios: son los datos tal como se cargaron.</div>`;
+  prevDiffs = new Set(d);
   document.querySelectorAll("[data-m]").forEach(el => { const m = el.dataset.m, i = +el.dataset.i, k = +el.dataset.k, b = i < bn && k < bn ? base[m][i][k] : null; el.classList.toggle("changed", i !== k && b !== cur[m][i][k]); });
   document.querySelectorAll("[data-nm]").forEach(el => { const i = +el.dataset.i; el.classList.toggle("changed", i >= bn || base[el.dataset.nm][i] !== cur[el.dataset.nm][i]); });
   if (R && !namesOnly) { stale = true; $("resEngine").textContent = "Desactualizado: vuelve a resolver"; }
@@ -120,7 +140,7 @@ async function solve(quiet) {
       R = normalizaFase(await res.json()); R.motor = "qiskit-servidor";
     } else if (pre) { R = normalizaFase(clone(pre)); R.motor = "qiskit-precalculado"; }
     else { btn.innerHTML = `<span class="spinner"></span> Calculando…`; await new Promise(r => setTimeout(r, 20)); R = G.resolver(clone(cur), { semilla, repeticiones: reps }); }
-    R.brigadas = [...cur.brigadas]; R.zonas = [...cur.zonas]; stale = false;
+    R.brigadas = [...cur.brigadas]; R.zonas = [...cur.zonas]; stale = false; mapFresh = true;
     renderResults(); drawMap(); setupAnim(); renderCalcs(); renderCompare();
     if (!quiet) toast(`Listo: óptimo ${R.optimo}, Grover acertó ${R.runs.filter(r => r.optimo).length}/${R.runs.length}`);
   } catch (err) { toast("Error del backend Qiskit: " + err.message + ". Usando el motor del navegador."); useBackend = false; updEngine(); btn.disabled = false; btn.textContent = "Resolver con Grover"; return solve(quiet); }
@@ -145,6 +165,7 @@ function renderResults() {
     `<b>Búsqueda adaptativa.</b> Empieza con umbral ${b.pasos[0].umbral} y mejora ${mejoras.length} veces: ${[b.pasos[0].umbral, ...mejoras].join(" → ")}. Usa ${b.consultas} consultas en ${b.pasos.length} mediciones.`,
     `<b>Resultado.</b> Costo ${b.costo} ${b.optimo ? `<span class="ok">= óptimo ✓</span>` : `<span class="bad">≠ óptimo</span>`}. ${b.consultas < R.M ? `Usó menos consultas que N! (${R.M}).` : `Para N = ${R.n} usó más consultas que N! (${R.M}): la ventaja empieza desde N ≈ 7.`}`
   ].map(s => `<li><span>${s}</span></li>`).join("");
+  if (!stale) { stagger("#kpis .kpi"); stagger("#steps li"); stagger("#assign div"); document.querySelectorAll("#kpis .kpi b").forEach(countUp); }
 }
 
 /* ---------------- Mapa ---------------- */
@@ -161,6 +182,11 @@ function drawMap() {
     s += `<circle cx="${x}" cy="${y}" r="${b >= 0 ? 9 : 6}" fill="${b >= 0 ? "var(--qiskit)" : "var(--surface)"}" stroke="var(--ink)" stroke-width="1.5"/><text x="${x + 14}" y="${y + 4}" font-size="11" font-weight="600" fill="var(--ink)" style="font-family:var(--sans)">${esc(z)}</text>${b >= 0 ? `<text x="${x + 14}" y="${y + 17}" font-size="9" fill="var(--muted)">${esc(cur.brigadas[b])}</text>` : ""}`; });
   if (!asg) s += `<text x="150" y="455" text-anchor="middle" font-size="10" fill="var(--muted)">Resuelve para ver la asignación</text>`;
   $("map").innerHTML = s;
+  if (mapFresh && asg) { // al resolver: las zonas aparecen una tras otra y las líneas se encienden
+    mapFresh = false; const m = $("map"); m.classList.remove("fresh"); void m.getBoundingClientRect();
+    m.querySelectorAll("circle").forEach((c, i) => c.style.setProperty("--i", i)); m.classList.add("fresh");
+    clearTimeout(drawMap.t); drawMap.t = setTimeout(() => m.classList.remove("fresh"), 1800);
+  }
 }
 
 /* ---------------- Animación de Grover ---------------- */
@@ -186,6 +212,7 @@ function renderFrame() {
   if (fi < 0) { $("stN").textContent = "0"; $("stT").textContent = "Listo para empezar"; $("stS").textContent = `Umbral inicial al azar · presupuesto ${R.presupuesto} consultas · N! = ${R.M}`; $("pipe").innerHTML = ""; setBars(Array(S).fill(1 / Math.sqrt(S)), null, null, -1); $("meas").textContent = ""; drawStair(run, -1); updStats(run, -1); return; }
   const f = frames[fi], p = run.pasos[f.s], marked = new Set(R.costos.map((c, i) => c < p.umbral ? i : -1).filter(i => i >= 0)), st = p.etapas ? p.etapas.map(e => e.etapa) : [];
   $("stN").textContent = f.s + 1;
+  const stg = document.querySelector(".stage"); stg.classList.remove("tick"); void stg.offsetWidth; stg.classList.add("tick");
   $("pipe").innerHTML = [...st, "Medición"].map((e, k) => `<i class="${(f.k === "m" ? k === st.length : k === f.k) ? "on" : ""}">${e}</i>`).join("");
   if (f.k === "m") {
     $("stT").textContent = p.mejora ? `Medición: ¡mejora! ${p.umbral} → ${p.costo_salida}` : "Medición: sin mejora";
@@ -316,7 +343,7 @@ $("foot").innerHTML = `<b>Q-Niño</b> · Equipo <b>Quantum Action</b>: Jefry Roj
 
 /* ---------------- Navegación, motor y tema ---------------- */
 function seg(id, opts, curv, cb) { const el = $(id); el.innerHTML = opts.map(n => `<button type="button" data-v="${n}" aria-pressed="${n === curv}">${n}</button>`).join(""); el.onclick = e => { const b = e.target.closest("button"); if (b) cb(+b.dataset.v); }; }
-function show(v) { if (!document.getElementById("v-" + v)) v = "simulador"; document.querySelectorAll("#menu button").forEach(b => b.setAttribute("aria-selected", b.dataset.v === v)); document.querySelectorAll("section.view").forEach(s => s.hidden = s.id !== "v-" + v); if (v !== "animacion") stop(); try { history.replaceState(null, "", "#" + v); } catch {} window.scrollTo({ top: 0 }); }
+function show(v) { if (!document.getElementById("v-" + v)) v = "simulador"; document.querySelectorAll("#menu button").forEach(b => b.setAttribute("aria-selected", b.dataset.v === v)); document.querySelectorAll("section.view").forEach(s => s.hidden = s.id !== "v-" + v); stagger(`#v-${v} .card`, null); if (v !== "animacion") stop(); try { history.replaceState(null, "", "#" + v); } catch {} window.scrollTo({ top: 0 }); }
 $("menu").onclick = e => { const b = e.target.closest("button"); if (b) show(b.dataset.v); };
 function updEngine() { const el = $("engine"); el.classList.toggle("live", useBackend);
   $("engineTxt").textContent = useBackend ? `Qiskit ${backend.qiskit} en vivo · servidor local` : backend ? "Navegador (clic para usar Qiskit en vivo)" : Q ? `Navegador · referencia Qiskit ${Q.qiskit}` : "Navegador"; }

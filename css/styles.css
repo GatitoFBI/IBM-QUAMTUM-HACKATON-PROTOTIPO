@@ -47,8 +47,6 @@ button,select,input{font:inherit;color:inherit}
 header.top{background:var(--pucp);color:var(--on-pucp)}
 header.top .wrap{display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding-block:16px}
 .brand{display:flex;gap:14px;align-items:center}
-.chakana{width:40px;height:40px;flex:none;background:var(--otono);clip-path:polygon(33% 0,67% 0,67% 17%,83% 17%,83% 33%,100% 33%,100% 67%,83% 67%,83% 83%,67% 83%,67% 100%,33% 100%,33% 83%,17% 83%,17% 67%,0 67%,0 33%,17% 33%,17% 17%,33% 17%);position:relative}
-.chakana::after{content:"";position:absolute;inset:36%;border-radius:50%;background:var(--pucp)}
 header.top .sub{font:500 .8rem var(--mono);opacity:.85}
 .engine{display:inline-flex;gap:8px;align-items:center;font:600 .82rem var(--mono);padding:6px 12px;border-radius:999px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25)}
 .engine i{width:9px;height:9px;border-radius:50%;background:var(--otono)}
@@ -129,7 +127,8 @@ table.t th{font:500 .7rem var(--mono);text-transform:uppercase;letter-spacing:.0
 .bad{color:var(--bad);font-weight:700}
 svg text{font-family:var(--mono)}
 .mapbox{background:var(--sunk);border-radius:10px}
-@media (prefers-reduced-motion:no-preference){.flow{stroke-dasharray:6 6;animation:dash 1.2s linear infinite}@keyframes dash{to{stroke-dashoffset:-12}}}
+html.motion .flow{stroke-dasharray:6 6;animation:dash 1.2s linear infinite}
+@keyframes dash{to{stroke-dashoffset:-12}}
 .spinner{display:inline-block;width:14px;height:14px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:spin .8s linear infinite;vertical-align:-2px}
 @keyframes spin{to{transform:rotate(360deg)}}
 
@@ -178,4 +177,74 @@ pre.code{margin:0;background:var(--sunk);border-radius:8px;padding:12px;overflow
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translate(-50%,140px);background:var(--ink);color:var(--surface);padding:10px 18px;border-radius:999px;font-weight:600;transition:transform .3s;z-index:40;max-width:calc(100% - 32px)}
 .toast.show{transform:translate(-50%,0)}
 footer{padding-block:28px 48px;color:var(--muted);font-size:.84rem;border-top:1px solid var(--line)}
-@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+html:not(.motion) *{transition:none!important;animation:none!important}
+
+/* ---------------- Logo y animaciones ----------------
+   Todo lo que se mueve depende de la clase html.motion: la activa js/app.js según
+   «reducir movimiento» del sistema o el botón «Animaciones» de la cabecera. */
+.logo{width:50px;height:50px;flex:none;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,.35)}
+nav.menu button{position:relative;border-bottom:0}
+nav.menu button::after{content:"";position:absolute;left:12px;right:12px;bottom:0;height:3px;border-radius:3px 3px 0 0;background:var(--qiskit);transform:scaleX(0);transition:transform .3s cubic-bezier(.2,.7,.2,1)}
+nav.menu button[aria-selected="true"]::after{transform:scaleX(1)}
+.btn,.seg button,.subtabs button,.hbtn{transition:transform .15s,border-color .15s,background-color .2s,box-shadow .2s}
+.btn:active,.seg button:active{transform:scale(.97)}
+.card{transition:box-shadow .25s,transform .25s,border-color .25s}
+
+/* Logo: la ruta se dibuja, los nodos aparecen y el qubit orbita */
+html.motion .logo .ruta{stroke-dasharray:760;stroke-dashoffset:760;animation:draw 1.4s .15s cubic-bezier(.6,0,.3,1) forwards}
+html.motion .logo .nodo,html.motion .logo .nucleo{transform-box:fill-box;transform-origin:center;animation:pop .45s cubic-bezier(.3,1.6,.5,1) backwards}
+html.motion .logo .nodo:nth-of-type(1){animation-delay:.25s}html.motion .logo .nodo:nth-of-type(2){animation-delay:.5s}
+html.motion .logo .nodo:nth-of-type(3){animation-delay:.75s}html.motion .logo .nodo:nth-of-type(4){animation-delay:1.25s}
+html.motion .logo .nucleo{animation:pop .45s 1s cubic-bezier(.3,1.6,.5,1) backwards,glow 2.6s 1.6s ease-in-out infinite}
+html.motion .logo .orbita{transform-box:fill-box;transform-origin:center;animation:spin 7s linear infinite}
+html.motion .logo .base{stroke-dasharray:372;stroke-dashoffset:372;animation:draw 1s 1.2s ease-out forwards}
+html.motion .brand:hover .logo{animation:float 1.6s ease-in-out infinite}
+@keyframes draw{to{stroke-dashoffset:0}}
+@keyframes pop{from{transform:scale(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes glow{50%{opacity:.75}}
+@keyframes float{50%{transform:translateY(-3px)}}
+
+/* Banda textil en movimiento lento y brillo en la cabecera */
+html.motion .band{animation:band 18s linear infinite}
+@keyframes band{to{background-position:400px 0,400px 0,0 0}}
+html.motion header.top{background-image:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.06) 50%,transparent 70%);background-size:300% 100%;animation:sheen 9s ease-in-out infinite}
+@keyframes sheen{0%,100%{background-position:100% 0}50%{background-position:0 0}}
+html.motion .engine.live i{animation:live 1.8s ease-out infinite}
+@keyframes live{0%{box-shadow:0 0 0 0 rgba(66,190,101,.6)}100%{box-shadow:0 0 0 10px rgba(66,190,101,0)}}
+
+/* Cambio de sección: la vista y sus tarjetas entran en cascada */
+html.motion section.view:not([hidden]){animation:viewIn .45s cubic-bezier(.2,.7,.2,1)}
+html.motion section.view:not([hidden]) .card{animation:cardIn .55s cubic-bezier(.2,.7,.2,1) backwards;animation-delay:calc(var(--i,0) * 70ms)}
+@keyframes viewIn{from{transform:translateY(8px)}}
+@keyframes cardIn{from{transform:translateY(14px) scale(.985)}}
+
+/* Botones e interacción */
+html.motion .btn:hover,html.motion .subtabs button:hover{transform:translateY(-1px);box-shadow:0 4px 12px color-mix(in srgb,var(--qiskit) 22%,transparent)}
+html.motion .btn.main{background-image:linear-gradient(110deg,transparent 35%,rgba(255,255,255,.28) 50%,transparent 65%);background-size:250% 100%;background-position:100% 0}
+html.motion .btn.main:hover{animation:shine .9s ease-out}
+@keyframes shine{to{background-position:-50% 0}}
+html.motion .card:hover{border-color:color-mix(in srgb,var(--qiskit) 35%,var(--line));box-shadow:0 8px 24px color-mix(in srgb,var(--qiskit) 10%,transparent)}
+
+/* Lo que cambias: destello en la celda y entrada del registro */
+html.motion .changed{animation:flash .7s ease-out}
+@keyframes flash{0%{box-shadow:0 0 0 6px color-mix(in srgb,var(--otono) 55%,transparent)}}
+html.motion .changes div.new{animation:slideIn .4s cubic-bezier(.2,.7,.2,1)}
+@keyframes slideIn{from{transform:translateX(-10px);background:color-mix(in srgb,var(--otono) 30%,var(--sunk))}}
+
+/* Resultados: KPIs, pasos y asignación aparecen en orden */
+html.motion .kpi.in{animation:kpiIn .5s cubic-bezier(.2,.7,.2,1) backwards;animation-delay:calc(var(--i,0) * 90ms)}
+html.motion .steps li.in,html.motion .assign div.in{animation:fadeUp .45s cubic-bezier(.2,.7,.2,1) backwards;animation-delay:calc(var(--i,0) * 80ms)}
+@keyframes kpiIn{from{transform:translateY(10px);border-left-color:transparent}}
+@keyframes fadeUp{from{transform:translateY(8px);opacity:.2}}
+
+/* Mapa: las zonas aparecen y la ruta se dibuja al resolver */
+html.motion #map.fresh circle{transform-box:fill-box;transform-origin:center;animation:pop .5s cubic-bezier(.3,1.6,.5,1) backwards;animation-delay:calc(var(--i,0) * 90ms)}
+html.motion #map.fresh .flow{animation:dash 1.2s linear infinite,flowIn .9s ease-out}
+@keyframes flowIn{from{stroke-opacity:0}}
+
+/* Animación de Grover: el banner de etapa late al cambiar */
+html.motion .stage.tick{animation:tick .35s ease-out}
+@keyframes tick{from{transform:scale(.99);box-shadow:0 0 0 4px color-mix(in srgb,var(--otono) 45%,transparent)}}
+html.motion .pipe i{transition:background .25s,color .25s,transform .25s}
+html.motion .pipe i.on{transform:translateY(-1px)}

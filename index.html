@@ -8,12 +8,25 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="css/styles.css">
+<link rel="icon" type="image/svg+xml" href="img/logo.svg">
 
 <div class="band" aria-hidden="true"></div>
 <header class="top gut"><div class="wrap">
-  <div class="brand"><span class="chakana" aria-hidden="true"></span>
+  <div class="brand">
+    <svg class="logo" viewBox="0 0 512 512" role="img" aria-label="Logo de Q-Niño: una ruta entre montañas con un qubit en la cumbre">
+      <rect width="512" height="512" rx="96" fill="#0B3C5D"/>
+      <polyline class="ruta" points="70,380 170,230 240,300 330,150 442,380" fill="none" stroke="#FFFFFF" stroke-width="22" stroke-linejoin="round" stroke-linecap="round"/>
+      <circle class="nodo" cx="70" cy="380" r="20" fill="#1FB5A9"/>
+      <circle class="nodo" cx="170" cy="230" r="20" fill="#1FB5A9"/>
+      <circle class="nodo" cx="240" cy="300" r="20" fill="#C8553D"/>
+      <circle class="nodo" cx="442" cy="380" r="20" fill="#1FB5A9"/>
+      <g transform="rotate(-25 330 150)"><ellipse class="orbita" cx="330" cy="150" rx="58" ry="22" fill="none" stroke="#1FB5A9" stroke-width="9"/></g>
+      <circle class="nucleo" cx="330" cy="150" r="26" fill="#FFFFFF"/>
+      <circle cx="330" cy="150" r="11" fill="#1FB5A9"/>
+      <line class="base" x1="70" y1="430" x2="442" y2="430" stroke="#1FB5A9" stroke-width="8" stroke-linecap="round" opacity="0.6"/>
+    </svg>
     <div><h1>Q-Niño · Simulador de Grover</h1><div class="sub">Qiskit Fall Fest 2026 · PUCP · Quantum Hub Perú · IEEE CS PUCP · Reto NTT DATA</div></div></div>
-  <div class="row"><span class="engine" id="engine" title="Qué está calculando los resultados"><i></i><span id="engineTxt">Detectando motor…</span></span><button class="hbtn" id="theme" type="button">Tema</button></div>
+  <div class="row"><span class="engine" id="engine" title="Qué está calculando los resultados"><i></i><span id="engineTxt">Detectando motor…</span></span><button class="hbtn" id="motion" type="button" aria-pressed="false">Animaciones</button><button class="hbtn" id="theme" type="button">Tema</button></div>
 </div></header>
 
 <nav class="menu gut" aria-label="Secciones"><div class="wrap" role="tablist" id="menu">
