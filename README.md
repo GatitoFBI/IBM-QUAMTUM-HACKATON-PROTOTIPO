@@ -1,3 +1,11 @@
+## Vídeo de la demo · 1:56
+
+[![Ver el vídeo: Grover y logística ante El Niño](videos/El_Nino_Grover_N3_N4_ES_preview.png)](videos/El_Nino_Grover_N3_N4_ES.mp4)
+
+**[▶ Ver vídeo en español](videos/El_Nino_Grover_N3_N4_ES.mp4)** · [Descargar MP4](https://raw.githubusercontent.com/GatitoFBI/IBM-QUAMTUM-HACKATON-PROTOTIPO/main/videos/El_Nino_Grover_N3_N4_ES.mp4)
+
+---
+
 # Q-Niño · Asignación de brigadas ante El Niño con Grover y Qiskit
 
 **Hackathon Qiskit Fall Fest 2026** (PUCP · Quantum Hub Perú · IEEE Computer Society PUCP · NTT DATA) · Reto de Industria NTT DATA: Problema de Asignación Cuadrática (QAP).
