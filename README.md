@@ -1,6 +1,6 @@
 ## Vídeo de la demo · 1:56
 
-[![Ver el vídeo: Grover y logística ante El Niño](videos/El_Nino_Grover_N3_N4_ES_preview.png)](videos/El_Nino_Grover_N3_N4_ES.mp4)
+https://github.com/user-attachments/assets/a18cb2cf-93af-4812-a9bf-3b399cd478b4
 
 **[▶ Ver vídeo en español](videos/El_Nino_Grover_N3_N4_ES.mp4)** · [Descargar MP4](https://raw.githubusercontent.com/GatitoFBI/IBM-QUAMTUM-HACKATON-PROTOTIPO/main/videos/El_Nino_Grover_N3_N4_ES.mp4)
 
