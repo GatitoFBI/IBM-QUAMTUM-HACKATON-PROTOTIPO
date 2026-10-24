@@ -26,13 +26,13 @@ if (Q) Object.values(Q.instancias).forEach(i => CASOS.push({ id: "q" + i.n, nomb
 /* ---------------- Estado ---------------- */
 let base, cur, R = null, stale = false, backend = null, useBackend = false, prevDiffs = new Set(), mapFresh = false;
 
-// Animaciones: por defecto siguen «reducir movimiento» del sistema; el botón de la cabecera lo cambia y se recuerda
+// Animaciones: activadas por defecto (pedido del equipo); el botón de la cabecera las apaga y la elección se recuerda
 const motionPref = (() => { try { return localStorage.getItem("qnino_motion"); } catch { return null; } })();
 function setMotion(on) {
   document.documentElement.classList.toggle("motion", on);
   $("motion").setAttribute("aria-pressed", on); $("motion").textContent = on ? "Animaciones: sí" : "Animaciones: no";
 }
-setMotion(motionPref ? motionPref === "on" : !matchMedia("(prefers-reduced-motion: reduce)").matches);
+setMotion(motionPref !== "off");
 $("motion").onclick = () => { const on = !document.documentElement.classList.contains("motion"); setMotion(on); try { localStorage.setItem("qnino_motion", on ? "on" : "off"); } catch {} toast(on ? "Animaciones activadas" : "Animaciones desactivadas"); };
 const reduced = () => !document.documentElement.classList.contains("motion");
 // Contador para los KPIs y orden de entrada (--i) para listas y tarjetas
