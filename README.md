@@ -3,7 +3,14 @@
 **Hackathon Qiskit Fall Fest 2026** (PUCP · Quantum Hub Perú · IEEE Computer Society PUCP · NTT DATA) · Reto de Industria NTT DATA: Problema de Asignación Cuadrática (QAP).
 
 - **Demo en vivo:** https://q-nino.vercel.app
-- **Equipo:** [Nombre del equipo] · [Integrante 1] (Matemática, UNMSM) · [Integrante 2] (Ciencias de la Computación, UNI) · [Integrante 3] (Sistemas de Información y Ciberseguridad, UTEC) · [Integrante 4] (Inteligencia Artificial)
+- **Equipo: Quantum Action**
+
+| Integrante | Perfil |
+|---|---|
+| Jefry Rojas | Estudiante de Matemática, UNMSM |
+| Sebastian Bimbi | Full-Stack Developer & Growth Partner |
+| Fabricio Ricapa | Estudiante de Sistemas de Información, UTEC |
+| Luis Nuñez | Estudiante de Ciencias de la Computación, UNI |
 
 ![Simulador de Q-Niño](docs/img/05_web_simulador.png)
 
