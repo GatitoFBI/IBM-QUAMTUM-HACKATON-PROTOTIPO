@@ -2,7 +2,12 @@
 
 **Hackathon Qiskit Fall Fest 2026** (PUCP · Quantum Hub Perú · IEEE Computer Society PUCP · NTT DATA) · Reto de Industria NTT DATA: Problema de Asignación Cuadrática (QAP).
 
-- **Demo en vivo:** https://q-nino.vercel.app
+| Entregable | Enlace |
+|---|---|
+| Prototipo (demo en vivo) | https://q-nino.vercel.app |
+| Presentación (Canva) | https://canva.link/wpcj3x5yovmqfao |
+| Repositorio | https://github.com/GatitoFBI/IBM-QUAMTUM-HACKATON-PROTOTIPO |
+
 - **Equipo: Quantum Action**
 
 | Integrante | Perfil |
