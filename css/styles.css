@@ -180,8 +180,8 @@ footer{padding-block:28px 48px;color:var(--muted);font-size:.84rem;border-top:1p
 html:not(.motion) *{transition:none!important;animation:none!important}
 
 /* ---------------- Logo y animaciones ----------------
-   Todo lo que se mueve depende de la clase html.motion: la activa js/app.js según
-   «reducir movimiento» del sistema o el botón «Animaciones» de la cabecera. */
+   Todo lo que se mueve depende de la clase html.motion: js/app.js la activa por defecto
+   y el botón «Animaciones» de la cabecera la quita. */
 .logo{width:50px;height:50px;flex:none;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,.35)}
 nav.menu button{position:relative;border-bottom:0}
 nav.menu button::after{content:"";position:absolute;left:12px;right:12px;bottom:0;height:3px;border-radius:3px 3px 0 0;background:var(--qiskit);transform:scaleX(0);transition:transform .3s cubic-bezier(.2,.7,.2,1)}
