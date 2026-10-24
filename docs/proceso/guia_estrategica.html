@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guía Hackathon: QAP con Qiskit para El Niño</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #e2e8f0;
+            --text-muted: #94a3b8;
+            --accent: #38bdf8;
+            --accent-hover: #0ea5e9;
+            --success: #10b981;
+            --warning: #f59e0b;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%);
+            padding: 3rem 2rem;
+            text-align: center;
+            border-bottom: 2px solid var(--accent);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            color: var(--accent);
+        }
+
+        header p {
+            color: var(--text-muted);
+            font-size: 1.2rem;
+            max-width: 800px;
+            margin: 1rem auto 0;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            border: 1px solid #334155;
+        }
+
+        h2 {
+            color: var(--accent);
+            border-bottom: 1px solid #334155;
+            padding-bottom: 0.5rem;
+            margin-top: 0;
+        }
+
+        h3 {
+            color: #f8fafc;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        ul {
+            padding-left: 1.5rem;
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+        }
+
+        code {
+            background-color: #0f172a;
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-family: 'Courier New', Courier, monospace;
+            color: #fca5a5;
+        }
+
+        pre {
+            background-color: #0f172a;
+            padding: 1.5rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            border: 1px solid #334155;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.9rem;
+            color: #e2e8f0;
+        }
+
+        .highlight {
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-right: 0.5rem;
+        }
+
+        .badge-blue { background-color: #1e3a8a; color: #93c5fd; }
+        .badge-green { background-color: #064e3b; color: #6ee7b7; }
+        .badge-yellow { background-color: #78350f; color: #fcd34d; }
+
+        .math-block {
+            text-align: center;
+            background-color: #0f172a;
+            padding: 1rem;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            margin: 1rem 0;
+            font-family: 'Times New Roman', Times, serif;
+            font-style: italic;
+        }
+
+        .alert {
+            background-color: rgba(245, 158, 11, 0.1);
+            border-left: 4px solid var(--warning);
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 8px 8px 0;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Guía Estratégica: QAP & Qiskit</h1>
+        <p>Adaptación del reto NTT DATA / IBM Quantum para la gestión de riesgos y toma de decisiones ante el Fenómeno de El Niño en Perú.</p>
+    </header>
+
+    <div class="container">
+
+        <!-- SECCIÓN 1: Contexto -->
+        <div class="card">
+            <h2>1. Entendiendo el Problema (El Niño)</h2>
+            <p>El reto original pide asignar 10 vuelos a 10 puertas minimizando distancias. Nosotros lo adaptamos a <strong>Logística Humanitaria</strong>:</p>
+            <div class="grid">
+                <div>
+                    <h3>Elementos (<em>i, k</em>)</h3>
+                    <p>Brigadas de ayuda (Médicos, Rescatistas, Logística).</p>
+                </div>
+                <div>
+                    <h3>Ubicaciones (<em>j, l</em>)</h3>
+                    <p>Zonas de riesgo o albergues (Piura, Tumbes, Chosica).</p>
+                </div>
+                <div>
+                    <h3>Flujo (<em>F<sub>ik</sub></em>)</h3>
+                    <p>Sinergia entre brigadas. Si Médicos y Rescatistas deben coordinarse, su flujo es alto.</p>
+                </div>
+                <div>
+                    <h3>Distancia (<em>D<sub>jl</sub></em>)</h3>
+                    <p>Tiempo de viaje entre zonas. (Puede aumentar si hay carreteras bloqueadas).</p>
+                </div>
+            </div>
+            <p><strong>Objetivo:</strong> Minimizar el tiempo total de respuesta colocando las brigadas que más se coordinan en zonas cercanas.</p>
+        </div>
+
+        <!-- SECCIÓN 2: Formulación -->
+        <div class="card">
+            <h2>2. Modelo Matemático (QAP)</h2>
+            <p>Debemos definir variables binarias <code>x_ij = 1</code> si la brigada <code>i</code> va a la zona <code>j</code>, y <code>0</code> en caso contrario.</p>
+            
+            <div class="math-block">
+                min C(x) = Σ Σ F<sub>ik</sub> * D<sub>jl</sub> * x<sub>ij</sub> * x<sub>kl</sub>
+            </div>
+
+            <p>Sujeto a:</p>
+            <ul>
+                <li><strong>Asignación única:</strong> Cada brigada va a exactamente 1 zona. (Σ<sub>j</sub> x<sub>ij</sub> = 1)</li>
+                <li><strong>Capacidad:</strong> Cada zona recibe exactamente 1 brigada. (Σ<sub>i</sub> x<sub>ij</sub> = 1)</li>
+            </ul>
+            <div class="alert">
+                <strong>Nota de penalización (QUBO):</strong> Las computadoras cuánticas no entienden de igualdades. Qiskit transforma estas restricciones en un Hamiltoniano añadiendo penalizaciones matemáticas (Multiplicador de Lagrange <em>λ</em>). Si una asignación rompe la regla, su energía (costo) aumenta drásticamente.
+            </div>
+        </div>
+
+        <!-- SECCIÓN 3: Código -->
+        <div class="card">
+            <h2>3. Implementación en Qiskit (Día 1: N=3)</h2>
+            <p>Para el Día 1, el PDF sugiere usar <code>N=3</code> o <code>N=4</code>. Aquí tienes el código base de Python usando <code>QAOA</code>.</p>
+            
+<pre><code>import numpy as np
+from qiskit_optimization import QuadraticProgram
+from qiskit_algorithms import QAOA
+from qiskit_algorithms.optimizers import COBYLA
+from qiskit.primitives import StatevectorSampler
+from qiskit_optimization.algorithms import MinimumEigenOptimizer
+
+# 1. DATOS (N=3)
+brigadas = ["Medica", "Logistica", "Rescate"]
+zonas = ["Piura", "Chosica", "Tumbes"]
+
+# Matriz de Flujo (Sinergia entre brigadas)
+F = np.array([
+    [0, 8, 2],  
+    [8, 0, 5],  
+    [2, 5, 0]   
+])
+
+# Matriz de Distancia (Tiempo en horas entre zonas)
+D = np.array([
+    [0, 12, 8],  
+    [12, 0, 15], 
+    [8, 15, 0]   
+])
+
+# 2. FORMULACIÓN MATEMÁTICA
+qp = QuadraticProgram()
+for i in range(len(brigadas)):
+    for j in range(len(zonas)):
+        qp.binary_var(name=f"x_{i}_{j}")
+        
+quadratic_terms = {}
+for i in range(len(brigadas)):
+    for k in range(len(brigadas)):
+        if i == k: continue 
+        for j in range(len(zonas)):
+            for l in range(len(zonas)):
+                if j == l: continue
+                coef = F[i, k] * D[j, l]
+                if coef != 0:
+                    # Dividimos entre 2 para no contar doble (convención del PDF)
+                    quadratic_terms[(f"x_{i}_{j}", f"x_{k}_{l}")] = coef / 2.0
+
+qp.minimize(quadratic=quadratic_terms)
+
+# Restricciones
+for i in range(len(brigadas)):
+    qp.linear_constraint(linear={f"x_{i}_{j}": 1 for j in range(len(zonas))}, sense="==", rhs=1)
+for j in range(len(zonas)):
+    qp.linear_constraint(linear={f"x_{i}_{j}": 1 for i in range(len(brigadas))}, sense="==", rhs=1)
+
+# 3. EJECUCIÓN CON QAOA
+sampler = StatevectorSampler()
+optimizer = COBYLA(maxiter=100)
+qaoa = QAOA(sampler=sampler, optimizer=optimizer, reps=2)
+opt_qaoa = MinimumEigenOptimizer(qaoa)
+resultado = opt_qaoa.solve(qp)
+
+print(f"Costo Óptimo: {resultado.fval}")
+</code></pre>
+        </div>
+
+        <!-- SECCIÓN 4: Estrategia -->
+        <div class="card">
+            <h2>4. Estrategia para Ganar el Hackathon</h2>
+            <div class="grid">
+                <div>
+                    <h3><span class="badge badge-blue">Etapa 1 (Día 1)</span></h3>
+                    <ul>
+                        <li>Haz un <strong>Baseline Clásico</strong> (Fuerza bruta para N=3, prueba las 6 combinaciones).</li>
+                        <li>Corre tu script de Qiskit y asegúrate de que el costo coincida con el clásico.</li>
+                        <li>Calcula el <strong>Gap (%)</strong>: <code>100 * (C_qaoa - C_exacto) / C_exacto</code>.</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3><span class="badge badge-yellow">Etapa 2 (Día 1-2)</span></h3>
+                    <ul>
+                        <li>Si intentas N=10 (100 variables), QAOA local colapsará por memoria (se requieren \(2^{100}\) estados).</li>
+                        <li><strong>Solución:</strong> Usa <em>Qiskit Optimization</em> para plantear el problema, pero resuélvelo con un algoritmo clásico (Greedy) o un <em>Warm Start</em> (usar la solución clásica como punto de partida para QAOA).</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <h3 style="margin-top: 2rem;"><span class="badge badge-green">Etapa 3 (Final: N≥14)</span></h3>
+            <p>El PDF dice: <em>"No es necesario enumerar todas las permutaciones ni simular un circuito de N² qubits"</em>. Para escalar:</p>
+            <ul>
+                <li><strong>Descomposición (Divide y vencerás):</strong> Separa las 14 zonas en 3 clústeres geográficos (Norte, Centro, Sur). Resuelve 3 problemas de N=5 con Qiskit y luego une.</li>
+                <li><strong>Búsqueda Local:</strong> Usa Qiskit para resolver sub-problemas pequeños iterativamente, mejorando una solución inicial.</li>
+            </ul>
+        </div>
+
+        <!-- SECCIÓN 5: Rúbrica -->
+        <div class="card">
+            <h2>5. Checklist para los Jueces (Rúbrica)</h2>
+            <p>Según el PDF, asegúrate de incluir en tu presentación:</p>
+            <ul>
+                <li><strong>Modelo y Datos:</strong> ¿De dónde sacaste las matrices F y D? (Cita SENAMHI, INDECI o usa supuestos justificados).</li>
+                <li><strong>Componente Qiskit:</strong> Explica el uso de penalizaciones QUBO y por qué elegiste QAOA (reps=2).</li>
+                <li><strong>Comparación:</strong> Muestra una tabla comparativa (Tiempo Exacto vs Tiempo QAOA, Factibilidad).</li>
+                <li><strong>Reproducibilidad:</strong> Sube tu código a GitHub con las versiones de las librerías (qiskit, qiskit-algorithms).</li>
+            </ul>
+        </div>
+
+    </div>
+</body>
+</html>

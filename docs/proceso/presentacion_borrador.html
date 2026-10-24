@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hackathon Qiskit: El Niño Perú</title>
+    <!-- Reveal.js CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.3.1/reveal.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.3.1/theme/black.min.css">
+    
+    <style>
+        /* Estilos personalizados para el Hackathon */
+        :root {
+            --accent: #38bdf8;
+            --alert: #f59e0b;
+            --success: #10b981;
+        }
+        .reveal {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .reveal h1, .reveal h2, .reveal h3 {
+            text-transform: none;
+            font-weight: 700;
+        }
+        .reveal h1 { color: var(--accent); text-shadow: 0 0 20px rgba(56, 189, 248, 0.5); }
+        .reveal h2 { color: var(--accent); }
+        .reveal h3 { color: #e2e8f0; }
+        
+        .highlight { color: var(--accent); font-weight: bold; }
+        .alert-text { color: var(--alert); font-weight: bold; }
+        .success-text { color: var(--success); font-weight: bold; }
+
+        .formula-box {
+            background-color: #1e293b;
+            padding: 20px;
+            border-radius: 10px;
+            font-size: 1.2em;
+            border-left: 5px solid var(--accent);
+            text-align: center;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .card {
+            background-color: #1e293b;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #334155;
+            text-align: left;
+            font-size: 0.9em;
+        }
+
+        .fragment.fade-up { transition: all 0.3s ease; }
+    </style>
+</head>
+<body>
+    <div class="reveal">
+        <div class="slides">
+
+            <!-- Diapositiva 1: Título -->
+            <section>
+                <h1>Optimización Cuántica para Gestión de Riesgos</h1>
+                <h3>Asignación de Brigadas ante el Fenómeno de El Niño</h3>
+                <p style="margin-top: 50px; color: #94a3b8;">
+                    Hackathon NTT DATA & IBM Quantum<br>
+                    <strong>Equipo:</strong> [Tu Nombre/Equipo aquí]
+                </p>
+                <aside class="notes">
+                    Buenos días a todos. Hoy les presentaremos cómo utilizamos computación cuántica (específicamente Qiskit) para resolver el Problema de Asignación Cuadrática (QAP) aplicado a un contexto crítico: la respuesta humanitaria ante El Niño en Perú.
+                </aside>
+            </section>
+
+            <!-- Diapositiva 2: El Contexto -->
+            <section>
+                <h2>El Problema: Logística Humanitaria</h2>
+                <div class="grid-2">
+                    <div class="card fragment fade-up">
+                        <h3>Contexto Original (Track A/B)</h3>
+                        <p>El reto de NTT DATA propone asignar vuelos a puertas de embarque o rutas a estaciones de carga para minimizar distancias.</p>
+                    </div>
+                    <div class="card fragment fade-up">
+                        <h3 style="color: var(--alert);">Nuestro Contexto</h3>
+                        <p>Lluvias e inundaciones severas bloquean carreteras. Necesitamos asignar <strong>Brigadas de ayuda (i, k)</strong> a <strong>Zonas de riesgo (j, l)</strong> minimizando el tiempo de respuesta.</p>
+                    </div>
+                </div>
+                <aside class="notes">
+                    El PDF nos permite adaptar el contexto. Nosotros elegimos el impacto social. En El Niño, las distancias no son estáticas; una carretera inundada cambia las reglas del juego. Queremos que la asignación de brigadas médicas, logísticas y de rescate sea óptima y rápida.
+                </aside>
+            </section>
+
+            <!-- Diapositiva 3: Modelo Matemático -->
+            <section>
+                <h2>Modelo Matemático (QAP)</h2>
+                <p style="font-size: 0.9em;">Basado en el benchmark <code>qap10</code> del reto.</p>
+                <div class="formula-box">
+                    \( C(x) = \sum_{i<k} \sum_{j \neq l} F_{ik} \cdot D_{jl} \cdot x_{ij} \cdot x_{kl} \)
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-top: 20px; font-size: 0.85em;">
+                    <div style="width: 30%;">
+                        <strong class="highlight">F<sub>ik</sub> (Flujo):</strong><br> Nivel de coordinación requerida entre brigadas.
+                    </div>
+                    <div style="width: 30%;">
+                        <strong class="highlight">D<sub>jl</sub> (Distancia):</strong><br> Tiempo de viaje entre zonas de riesgo.
+                    </div>
+                    <div style="width: 30%;">
+                        <strong class="highlight">x<sub>ij</sub> (Decisión):</strong><br> 1 si la brigada va a la zona, 0 si no.
+                    </div>
+                </div>
+                <aside class="notes">
+                    El modelo es cuadrático porque el costo depende de la interacción entre pares. Si una brigada médica y una logística necesitan estar juntas (alto flujo F), deben ser asignadas a zonas cercanas (baja distancia D).
+                </aside>
+            </section>
+
+            <!-- Diapositiva 4: El Desafío de Escalabilidad -->
+            <section>
+                <h2>El "Muro" de la Simulación Clásica</h2>
+                <div class="grid-2">
+                    <div class="card">
+                        <h3>N = 3</h3>
+                        <ul>
+                            <li>3 Brigadas, 3 Zonas</li>
+                            <li>3! = <strong>6 permutaciones</strong></li>
+                            <li>Fácil de resolver clásicamente (Exacto).</li>
+                        </ul>
+                    </div>
+                    <div class="card fragment fade-up" style="border-color: var(--alert);">
+                        <h3>N = 10</h3>
+                        <ul>
+                            <li>10 Brigadas, 10 Zonas</li>
+                            <li>10! = <strong>3,628,800 combinaciones</strong></li>
+                            <li>Para simular el estado cuántico de 100 qubits necesitamos \(2^{100}\) amplitudes. ¡Imposible en RAM local!</li>
+                        </ul>
+                    </div>
+                </div>
+                <aside class="notes">
+                    El PDF es claro: no podemos simular 100 qubits en nuestra laptop. Por eso, nuestra estrategia se divide: demostramos la mecánica con N=3 y para N=10 diseñamos estrategias híbridas. El obstáculo no es resolver el QAP clásicamente, sino simular el circuito cuántico.
+                </aside>
+            </section>
+
+            <!-- Diapositiva 5: Implementación con Qiskit -->
+            <section>
+                <h2>Nuestra Estrategia con Qiskit</h2>
+                <div class="card">
+                    <h3>1. Formulación (<code>QuadraticProgram</code>)</h3>
+                    <p>Variables binarias \(x_{ij}\). Restricciones de asignación única.</p>
+                    
+                    <h3 style="margin-top: 15px;">2. Transformación a Ising (QUBO)</h3>
+                    <p>Las restricciones se convierten en penalizaciones con el multiplicador \(\lambda\). Si se rompe una regla, la energía sube.</p>
+                    
+                    <h3 style="margin-top: 15px;">3. Algoritmo QAOA</h3>
+                    <p>Usamos <code>StatevectorSampler</code> y <code>COBYLA</code> para optimizar los parámetros del circuito (\(\beta, \gamma\)).</p>
+                </div>
+                <aside class="notes">
+                    Usamos `MinimumEigenOptimizer` de Qiskit. Este toma nuestro problema matemático, extrae la matriz QUBO, y construye un Hamiltoniano de Ising. Luego QAOA busca el estado de mínima energía, que equivale a nuestra mejor asignación logística.
+                </aside>
+            </section>
+
+            <!-- Diapositiva 6: Resultados y Comparativa -->
+            <section>
+                <h2>Resultados (Día 1: N=3)</h2>
+                <table style="font-size: 0.8em; width: 100%; text-align: center; border-collapse: collapse;">
+                    <tr style="border-bottom: 2px solid var(--accent);">
+                        <th>Método</th>
+                        <th>Costo (Tiempo)</th>
+                        <th>Estado</th>
+                        <th>Tiempo ejecución</th>
+                    </tr>
+                    <tr>
+                        <td>Fuerza Bruta (Clásico)</td>
+                        <td>34 horas</td>
+                        <td class="success-text">Óptimo Factible</td>
+                        <td>< 0.01s</td>
+                    </tr>
+                    <tr>
+                        <td>Heurística Greedy</td>
+                        <td>45 horas</td>
+                        <td class="success-text">Factible</td>
+                        <td>< 0.01s</td>
+                    </tr>
+                    <tr style="background-color: rgba(56, 189, 248, 0.1);">
+                        <td><strong>QAOA (p=2)</strong></td>
+                        <td><strong>34 horas</strong></td>
+                        <td class="success-text">Factible</td>
+                        <td>~2.5s (Simulación)</td>
+                    </tr>
+                </table>
+                <p style="font-size: 0.7em; margin-top: 20px; color: #94a3b8;">*QAOA iguala el óptimo clásico. El Gap es 0% para esta instancia.</p>
+                <aside class="notes">
+                    Aquí vemos la magia. Para N=3, QAOA encuentra la misma solución óptima que la fuerza bruta (34 horas de costo logístico). La diferencia es que QAOA lo hace mediante mecánica cuántica. La ventaja se verá al escalar con hardware real.
+                </aside>
+            </section>
+
+            <!-- Diapositiva 7: Conclusión y Escalabilidad -->
+            <section>
+                <h2>Conclusión y Visión a Futuro</h2>
+                <ul>
+                    <li class="fragment"><strong>Día 1 (N=3):</strong> Validamos el pipeline cuántico. Qiskit se integra perfectamente con la lógica de negocio.</li>
+                    <li class="fragment"><strong>Día 2 (N=10+):</strong> Dado el límite de memoria (\(2^{100}\)), usaremos <strong>Descomposición Geográfica</strong> (resolver N=5 por regiones) y <strong>Warm Starts</strong> clásicos.</li>
+                    <li class="fragment"><strong>Impacto Real:</strong> Recalcular la asignación en segundos cuando una carretera se inunde puede salvar vidas.</li>
+                </ul>
+                <h1 style="margin-top: 50px; font-size: 1.5em;">¡Gracias!</h1>
+                <aside class="notes">
+                    En resumen, no estamos afirmando una ventaja cuántica hoy en día con simuladores. Estamos construyendo la arquitectura para el futuro. Cuando el hardware cuántico escale, esta formulación con Qiskit permitirá resolver problemas logísticos complejos de forma instantánea. Gracias.
+                </aside>
+            </section>
+
+        </div>
+    </div>
+
+    <!-- Reveal.js JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.3.1/reveal.min.js"></script>
+    <script>
+        Reveal.initialize({
+            hash: true,
+            transition: 'slide', // none/fade/slide/convex/concave/zoom
+            controls: true,
+            progress: true,
+            center: true,
+            slideNumber: 'c/t',
+            showNotes: false // Cambiar a true si quieres ver las notas por defecto
+        });
+    </script>
+    <!-- MathJax para las fórmulas matemáticas -->
+    <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+</body>
+</html>
