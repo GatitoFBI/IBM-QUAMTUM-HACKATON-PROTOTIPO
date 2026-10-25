@@ -79,14 +79,15 @@
         </div></section>
     </div>
 
-    <div class="card">
+    <div class="card mapcard">
       <div class="row between"><h3>Cambios respecto a los datos cargados</h3><span class="badge o" id="nChanges">0</span></div>
       <p class="muted small" id="baseName"></p>
       <div class="changes" id="changes"></div>
-      <h3>Mapa de la asignación</h3>
+      <div class="row between"><h3>Mapa de la asignación</h3><div class="mlegend"><span><i class="lz"></i>zona con brigada</span><span><i class="ll"></i>sinergia (grosor)</span></div></div>
       <div class="mapreal" id="mapReal" role="region" aria-label="Mapa de la costa peruana con las zonas y la asignación"></div>
       <svg class="mapbox" id="map" viewBox="0 0 300 470" width="100%" role="img" aria-label="Mapa esquemático de la costa peruana" hidden></svg>
       <p class="muted small" id="mapNote">Mapa de OpenStreetMap con ubicaciones aproximadas de cada zona. Las líneas unen las zonas de cada par de brigadas en línea recta, no por carretera; su grosor es la sinergia F.</p>
+      <div class="mstats" id="mStats"></div>
     </div>
   </div>
 

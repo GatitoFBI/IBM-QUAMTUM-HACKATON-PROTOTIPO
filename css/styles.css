@@ -499,3 +499,20 @@ html.motion .sky .c4{--t:38s;--d:-5s}
 html.motion .sky .c5{--t:64s;--d:-50s}
 @keyframes drift{0%{transform:translate(-420px,0) scale(var(--s,1))}50%{transform:translate(50vw,-18px) scale(var(--s,1))}100%{transform:translate(calc(100vw + 60px),0) scale(var(--s,1))}}
 @keyframes wash{0%{background-position:0% 50%}100%{background-position:100% 50%}}
+
+/* Tarjeta del mapa: el mapa crece hasta llenar el alto disponible */
+.mapcard{display:flex;flex-direction:column;gap:12px}
+.mapcard .mapreal{flex:1 1 auto;height:auto;min-height:420px}
+.mlegend{display:flex;gap:12px;font-size:.74rem;color:var(--muted)}
+.mlegend span{display:inline-flex;align-items:center;gap:5px}
+.mlegend .lz{width:11px;height:11px;border-radius:50%;background:var(--qiskit);border:2px solid var(--ink)}
+.mlegend .ll{width:18px;height:4px;border-radius:2px;background:var(--otono)}
+.mstats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+@media (max-width:520px){.mstats{grid-template-columns:1fr}}
+.ms{display:grid;gap:2px;padding:10px 12px;border-radius:10px;background:color-mix(in srgb,var(--c) 10%,var(--sunk));border:1px solid color-mix(in srgb,var(--c) 28%,var(--line));min-width:0}
+.mt2{font:600 .7rem var(--mono);text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.mv{font:700 1.15rem var(--cond);color:var(--ink)}
+.mv b{font-variant-numeric:tabular-nums}
+.ms2{font-size:.8rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+html.motion .ms{animation:fadeUp .45s cubic-bezier(.2,.7,.2,1) backwards;animation-delay:calc(var(--i,0) * 80ms);transition:transform .2s,box-shadow .2s}
+html.motion .ms:hover{transform:translateY(-2px);box-shadow:0 6px 14px color-mix(in srgb,var(--c) 18%,transparent)}

@@ -269,7 +269,7 @@ function mapTiles() { // OpenStreetMap estándar; en modo oscuro se oscurece con
 const zoneLatLng = (z, j, n) => Z[z] || (() => { const c = COAST[Math.round(2 + j * (COAST.length - 4) / Math.max(1, n - 1))]; return [c[0], c[1] + 0.6]; })();
 matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { mapTiles(); if (LM) drawMap(); });
 function drawMapReal(asg, Fm) {
-  if (!LM) { LM = L.map("mapReal", { scrollWheelZoom: false, zoomSnap: .25 }); mapTiles(); LG = L.layerGroup().addTo(LM); }
+  if (!LM) { LM = L.map("mapReal", { scrollWheelZoom: false, zoomSnap: .25 }); mapTiles(); LG = L.layerGroup().addTo(LM); let rh = 0; new ResizeObserver(() => { const h = $("mapReal").offsetHeight; if (Math.abs(h - rh) < 4) return; rh = h; LM.invalidateSize(); drawMapReal.key = null; drawMap(); }).observe($("mapReal")); }
   LG.clearLayers();
   const n = cur.F.length, pts = cur.zonas.map((z, j) => zoneLatLng(z, j, n)), fresh = mapFresh && asg;
   if (asg) for (let i = 0; i < n; i++) for (let k = i + 1; k < n; k++)
@@ -280,7 +280,26 @@ function drawMapReal(asg, Fm) {
   const key = pts.join("|"); if (drawMapReal.key !== key) { LM.fitBounds(L.latLngBounds(pts), { padding: [40, 40], maxZoom: 8 }); drawMapReal.key = key; }
   mapFresh = false;
 }
+/* Datos clave del escenario bajo el mapa: se actualizan con cada cambio */
+function renderMapStats() {
+  const n = cur.F.length, pts = cur.zonas.map((z, j) => zoneLatLng(z, j, n));
+  let fi = [0, 1], di = [0, 1], span = 0, si = [0, 1];
+  for (let i = 0; i < n; i++) for (let k = i + 1; k < n; k++) {
+    if (cur.F[i][k] > cur.F[fi[0]][fi[1]]) fi = [i, k];
+    if (cur.D[i][k] > cur.D[di[0]][di[1]]) di = [i, k];
+    const km = haversine(pts[i], pts[k]); if (km > span) { span = km; si = [i, k]; }
+  }
+  const asg = R && !stale && R.n === n ? R.perms[bestRun().indice] : null, c = asg ? G.costo(cur.F, cur.D, asg) : null;
+  const items = [
+    ["Par más coordinado", `${esc(cur.brigadas[fi[0]])} · ${esc(cur.brigadas[fi[1]])}`, `F = <b class="cnt">${cur.F[fi[0]][fi[1]]}</b>`, "--otono"],
+    ["Tramo más largo", `${esc(cur.zonas[di[0]])} ↔ ${esc(cur.zonas[di[1]])}`, `<b class="cnt">${cur.D[di[0]][di[1]]}</b> h`, "--qiskit-2"],
+    ["Zonas más alejadas", `${esc(cur.zonas[si[0]])} ↔ ${esc(cur.zonas[si[1]])}`, `<b class="cnt">${Math.round(span)}</b> km`, "--qiskit"],
+    ["Costo de la asignación", asg ? "la que encontró Grover" : "resuelve para calcularlo", asg ? `C = <b class="cnt">${c}</b>` : "—", "--ok"]];
+  $("mStats").innerHTML = items.map(([t, s, v, col], i) => `<div class="ms" style="--c:var(${col});--i:${i}"><span class="mt2">${t}</span><b class="mv">${v}</b><span class="ms2">${s}</span></div>`).join("");
+  if (mapFresh) document.querySelectorAll("#mStats .cnt").forEach(countUp);   // solo al resolver
+}
 function drawMap() {
+  renderMapStats();
   const Fm0 = Math.max(1, ...cur.F.flat()), asg0 = R && !stale && R.n === cur.F.length ? R.perms[bestRun().indice] : null;
   if (window.L) return drawMapReal(asg0, Fm0);
   $("mapReal").hidden = true; $("map").hidden = false;
