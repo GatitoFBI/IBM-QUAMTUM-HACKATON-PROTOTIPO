@@ -1,11 +1,8 @@
 {
   "framework": null,
-  "buildCommand": "",
-  "outputDirectory": ".",
+  "buildCommand": "node scripts/build.mjs",
+  "outputDirectory": "dist",
   "rewrites": [
-    {
-      "source": "/slides",
-      "destination": "/slides/index.html"
-    }
+    { "source": "/slides", "destination": "/slides/index.html" }
   ]
 }

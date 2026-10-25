@@ -4,3 +4,10 @@ __pycache__
 requirements.txt
 docs
 videos
+
+.hallmark
+design.md
+AGENTS.md
+CLAUDE.md
+.claude
+.codex
