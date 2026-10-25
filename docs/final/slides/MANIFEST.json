@@ -1,0 +1,37 @@
+{
+  "created": "2026-10-25",
+  "slides": 6,
+  "status": "ready_for_rehearsal_pending_team_n14_results",
+  "files": [
+    {
+      "file": "Q_Nino_Pitch_Final_4min.pptx",
+      "bytes": 240079,
+      "sha256": "30149b694c1fa813def587cd24146606eb804407798a1a6b7a6de119510b73b9"
+    },
+    {
+      "file": "Q_Nino_Pitch_Final_4min.pdf",
+      "bytes": 564411,
+      "sha256": "051a286d44e24ac57691136cb6a8ea1308c0e8cd3f3981216763af68d4e634bc"
+    },
+    {
+      "file": "Q_Nino_Pitch_Final_4min.html",
+      "bytes": 221142,
+      "sha256": "5d1844b593a2cce8b8b83b18f0b9661c6c476ae412ef3c23c138d809d24f297a"
+    },
+    {
+      "file": "NOTAS_PRESENTADOR.txt",
+      "bytes": 7018,
+      "sha256": "f3aa15ee9a18f9f6e1d8ac945506045c97b57029c5e3f3227c0f0660678b9a99"
+    },
+    {
+      "file": "Vista_previa_Q_Nino.png",
+      "bytes": 210948,
+      "sha256": "401a649ee2bfcd452c27fa303ebef5d7f29e058fdace01b2bfbfdf6452d8280d"
+    },
+    {
+      "file": "LEEME.txt",
+      "bytes": 2464,
+      "sha256": "80808788fcd556c2a20e43a6d629b2406f7514d168e59134806ed7333d47443c"
+    }
+  ]
+}

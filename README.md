@@ -15,6 +15,7 @@ https://github.com/user-attachments/assets/a18cb2cf-93af-4812-a9bf-3b399cd478b4
 | Prototipo (demo en vivo) | https://q-nino.vercel.app |
 | Presentación (Canva) | https://canva.link/wpcj3x5yovmqfao |
 | Pitch para la final y datos oficiales | [Guion de 4 minutos, apoyo para el jurado y evidencia SENAMHI](docs/final/README.md) |
+| Diapositivas del pitch final | [PDF](docs/final/slides/Q_Nino_Pitch_Final_4min.pdf) · [PowerPoint editable](docs/final/slides/Q_Nino_Pitch_Final_4min.pptx) · [Todos los formatos y notas](docs/final/slides/README.md) |
 | Repositorio | https://github.com/GatitoFBI/IBM-QUAMTUM-HACKATON-PROTOTIPO |
 
 - **Equipo: Quantum Action**

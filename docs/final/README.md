@@ -6,6 +6,7 @@ Pitch de cuatro minutos para cuatro voces, con demo breve, aporte del prototipo 
 
 | Material | Contenido |
 |---|---|
+| [Diapositivas del pitch](slides/README.md) | Seis pantallas en PowerPoint editable, PDF y HTML sin conexión, con notas por expositor |
 | [Guion de cuatro minutos](guion_4min_ES.txt) | Sebastian: apertura y cierre; Jefry: modelo y resultados; Luis: implementación y demo; Fabricio: aporte y oportunidad |
 | [Respuestas para el jurado](apoyo_jurado_ES.txt) | Modelo, Qiskit, comparación clásica, procedencia y escalabilidad |
 | [Diapositiva de ventajas y explicación del hardware](ventajas_y_hardware_ES.txt) | Aporte actual, oportunidades y locución sugerida |

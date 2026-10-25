@@ -1,0 +1,97 @@
+DIAPOSITIVA 1: Coordinar brigadas cuando más importa
+Sebastian | 0:00–0:30
+
+0:00–0:30 | SEBASTIAN | EL PROBLEMA
+Pantalla 1: Q-Niño + brigadas y zonas. Dato visible: estación Miraflores, Piura, 1998, 1.857,7 mm acumulados; cálculo propio sumando 365 registros diarios de SENAMHI, sin faltantes. No presentar el dato como actual ni como promedio regional. Contexto reciente en nota secundaria: ENFEN 18-2026, 16/10/2026, alerta y pronóstico.
+
+Los registros de SENAMHI muestran la escala del reto: en mil novecientos noventa y ocho, la estación Miraflores, en Piura, acumuló más de mil ochocientos milímetros de lluvia.
+
+Organizar la respuesta exige coordinar brigadas y destinos. Somos Quantum Action y construimos Q-Niño para comparar esas asignaciones y apoyar decisiones mejor informadas.
+
+Fuente: https://www.senamhi.gob.pe/site/descarga-datos/descarga/?cod=000207
+Total calculado por suma decimal, agrupando por la etiqueta explícita 1998. No es una media regional ni un dato de lluvia actual. ENFEN 18-2026 sirve de contexto reciente, fechado 16/10/2026; está en el paquete de fuentes.
+
+========================================================================
+
+DIAPOSITIVA 2: Una asignación cambia varias relaciones
+Jefry | 0:30–1:10
+
+0:30–1:10 | JEFRY | EL MODELO
+Pantalla 2: F = interacción, D = distancia/coste, una brigada por zona.
+
+Modelamos el despliegue como un problema de asignación cuadrática: una brigada por zona y una zona por brigada.
+
+La matriz F representa cuánto interactúan dos equipos. La matriz D representa la separación entre sus destinos. Minimizamos la suma de esos productos, contando cada pareja una vez. Por eso, mover una brigada cambia varias relaciones a la vez.
+
+El contexto climático se sustenta en fuentes oficiales. Las matrices de esta demo siguen siendo sintéticas; vincular lluvia, rutas y coordinación requiere calibración.
+
+El ejemplo ilustrado usa la matriz N=4 del repositorio y p=[3,2,1,0]: F[Médica,Rescate]=9 y D[Trujillo,Lambayeque]=5. Su contribución es 45. No son horas de respuesta reales. Fuente: https://github.com/GatitoFBI/IBM-QUAMTUM-HACKATON-PROTOTIPO/blob/8d407b4b366627c1d9a8eb9fdbfc8ec4f2b80c2c/datos.js
+
+========================================================================
+
+DIAPOSITIVA 3: Grover explora asignaciones completas
+Luis | 1:10–1:55
+
+1:10–1:55 | LUIS | IMPLEMENTACIÓN Y COMPONENTE CUÁNTICO
+Pantalla 3: candidato → oráculo → difusión → medición → nuevo umbral.
+
+Exploramos QUBO y QAOA y después implementamos búsqueda adaptativa de Grover.
+
+Un bucle clásico mantiene la mejor asignación encontrada. El oráculo marca las alternativas de menor coste mediante un cambio de fase; la difusión amplifica su probabilidad y la medición produce otro candidato.
+
+Qiskit construye y simula esos circuitos. Para cuatro brigadas, las veinticuatro asignaciones se indexan con cinco qubits, frente a dieciséis variables del QUBO. Son qubits de índice: un oráculo completo necesitaría recursos adicionales. Los índices sobrantes se descartan.
+
+Fuente: https://github.com/GatitoFBI/IBM-QUAMTUM-HACKATON-PROTOTIPO/blob/8d407b4b366627c1d9a8eb9fdbfc8ec4f2b80c2c/qiskit_grover.py
+Los 5 qubits describen solo el registro de índice. 2^5=32 y 24 índices representan permutaciones; los 8 sobrantes pueden medirse. No presentar la cifra como los recursos totales de una QPU.
+
+========================================================================
+
+DIAPOSITIVA 4: Una decisión que se puede inspeccionar
+Luis | 1:55–2:20
+
+1:55–2:20 | LUIS | DEMO BREVE
+Pantalla 4: demo N=4 ya cargada. Señalar resultado y abrir la animación.
+
+Aquí vemos cuatro brigadas y cuatro zonas. El resultado precalculado con Qiskit tiene coste doscientos dos, igual al óptimo exacto de esta matriz. Podemos inspeccionar la asignación, las relaciones que más pesan y las etapas del circuito.
+
+No ejecutar N=6 en directo. No reproducir el vídeo completo. Presupuesto de interacción: unos 7 segundos, además de la locución.
+
+Antes del pitch, abrir https://q-nino.vercel.app/#simulador y cargar N=4 con el ejemplo verificado Qiskit. Mostrar coste 202 y pasar a la animación. Si falla la conexión, esta diapositiva contiene el respaldo de la asignación registrada: [3,2,1,0]. No ejecutar N=6 en directo.
+
+========================================================================
+
+DIAPOSITIVA 5: Resultados que podemos contrastar
+Jefry | 2:20–3:00
+
+2:20–3:00 | JEFRY | RESULTADOS Y ESCALABILIDAD
+Pantalla 5: evidencia pequeña + comparación N=10 / N>=14.
+
+En cuatro instancias sintéticas, de tres a seis brigadas, obtuvimos el óptimo en cuarenta de cuarenta ejecuciones registradas. Es evidencia acotada a esas pruebas.
+
+[BLOQUE PENDIENTE, MÁXIMO 45 PALABRAS. Integrar: N probado, instancia y procedencia, método clásico frente al híbrido, calidad factible, tiempo total y memoria. Usar cifras reales. Si el híbrido pierde, decir en qué métrica y qué trabajo lo explica. No leer esta instrucción.]
+
+También debemos aislar el aporte del componente cuántico.
+
+Esta tabla reproduce datos guardados, no nuevas ejecuciones. Los resultados se comprobaron recalculando los costes de F y D. No demuestra éxito universal.
+PENDIENTE: sustituir la franja inferior por los resultados reales N=10 y N>=14 antes de cerrar la versión final; conservar método, calidad factible, tiempo total y memoria. Nunca sustituir la medición por una extrapolación factorial.
+
+========================================================================
+
+DIAPOSITIVA 6: Mejor coordinación, cuando más importa
+Fabricio + Sebastian | 3:00–3:45
+
+3:00–3:30 | FABRICIO | APORTE Y OPORTUNIDAD
+Pantalla 6: decisiones que se pueden revisar, representación compacta y oportunidad de reoptimizar. Nota breve visible: ventaja de consultas teórica; tiempo en QPU pendiente de medición.
+
+Nuestro aporte es que cada decisión se puede revisar: qué brigada va a cada zona, qué relaciones pesan más y cómo se compara con una referencia clásica. La oportunidad es reoptimizar cuando cambien las rutas o la información disponible. La mejora de consultas de Grover es teórica; convertirla en ahorro operativo es nuestra siguiente validación.
+
+3:30–3:45 | SEBASTIAN | CIERRE
+Mantener pantalla 6; señalar la conclusión medida de N>=14, una vez incorporada.
+
+Q-Niño convierte un problema complejo en decisiones que podemos examinar. Buscamos una coordinación mejor informada cuando más importa. Somos Quantum Action. Gracias.
+
+3:45–4:00 | MARGEN
+Permanecer en la conclusión. No introducir material nuevo.
+
+El hardware cuántico evita representar explícitamente un vector de estado clásico, pero eso no garantiza menor tiempo total. Medir oráculo, profundidad, repeticiones y procesamiento clásico. No afirmar ahorro económico demostrado. Fuente IBM: https://quantum.cloud.ibm.com/docs/en/guides/estimate-job-run-time
+Fuentes y evidencia: https://github.com/GatitoFBI/IBM-QUAMTUM-HACKATON-PROTOTIPO/tree/main/docs/final
