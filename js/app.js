@@ -273,7 +273,7 @@ function drawMapReal(asg, Fm) {
   LG.clearLayers();
   const n = cur.F.length, pts = cur.zonas.map((z, j) => zoneLatLng(z, j, n)), fresh = mapFresh && asg;
   if (asg) for (let i = 0; i < n; i++) for (let k = i + 1; k < n; k++)
-    L.polyline([pts[asg[i]], pts[asg[k]]], { color: cssVar("--otono"), weight: 1.5 + 6 * cur.F[i][k] / Fm, opacity: .9, className: "flow" }).addTo(LG);
+    L.polyline([pts[asg[i]], pts[asg[k]]], { color: cssVar("--otono"), weight: 1.5 + 6 * cur.F[i][k] / Fm, opacity: stale ? .6 : .9, dashArray: stale ? "6 8" : null, className: stale ? "" : "flow" }).addTo(LG);
   cur.zonas.forEach((z, j) => { const b = asg ? asg.indexOf(j) : -1;
     L.circleMarker(pts[j], { radius: b >= 0 ? 9 : 6, color: cssVar("--ink"), weight: 2, fillColor: cssVar(b >= 0 ? "--qiskit" : "--surface"), fillOpacity: 1, className: fresh ? "zpop" : "" })
       .bindTooltip(`<b>${esc(z)}</b>${b >= 0 ? `<br>${esc(cur.brigadas[b])}` : ""}`, { permanent: true, direction: j % 2 ? "left" : "right", offset: [j % 2 ? -10 : 10, 0], className: "ztip" }).addTo(LG); });
@@ -289,18 +289,20 @@ function renderMapStats() {
     if (cur.D[i][k] > cur.D[di[0]][di[1]]) di = [i, k];
     const km = haversine(pts[i], pts[k]); if (km > span) { span = km; si = [i, k]; }
   }
-  const asg = R && !stale && R.n === n ? R.perms[bestRun().indice] : null, c = asg ? G.costo(cur.F, cur.D, asg) : null;
+  const asg = lastAsg(), c = asg ? G.costo(cur.F, cur.D, asg) : null;
   const items = [
     ["Par más coordinado", `${esc(cur.brigadas[fi[0]])} · ${esc(cur.brigadas[fi[1]])}`, `F = <b class="cnt">${cur.F[fi[0]][fi[1]]}</b>`, "--otono"],
     ["Tramo más largo", `${esc(cur.zonas[di[0]])} ↔ ${esc(cur.zonas[di[1]])}`, `<b class="cnt">${cur.D[di[0]][di[1]]}</b> h`, "--qiskit-2"],
     ["Zonas más alejadas", `${esc(cur.zonas[si[0]])} ↔ ${esc(cur.zonas[si[1]])}`, `<b class="cnt">${Math.round(span)}</b> km`, "--qiskit"],
-    ["Costo de la asignación", asg ? "la que encontró Grover" : "resuelve para calcularlo", asg ? `C = <b class="cnt">${c}</b>` : "—", "--ok"]];
+    ["Costo de la asignación", asg ? (stale ? "la anterior, con tus cambios: vuelve a resolver" : "la que encontró Grover") : "resuelve para calcularlo", asg ? `C = <b class="cnt">${c}</b>` : "—", "--ok"]];
   $("mStats").innerHTML = items.map(([t, s, v, col], i) => `<div class="ms" style="--c:var(${col});--i:${i}"><span class="mt2">${t}</span><b class="mv">${v}</b><span class="ms2">${s}</span></div>`).join("");
   if (mapFresh) document.querySelectorAll("#mStats .cnt").forEach(countUp);   // solo al resolver
 }
+// Tras editar, el mapa sigue mostrando la última asignación (punteada) hasta que se vuelva a resolver
+const lastAsg = () => R && R.n === cur.F.length ? R.perms[bestRun().indice] : null;
 function drawMap() {
   renderMapStats();
-  const Fm0 = Math.max(1, ...cur.F.flat()), asg0 = R && !stale && R.n === cur.F.length ? R.perms[bestRun().indice] : null;
+  const Fm0 = Math.max(1, ...cur.F.flat()), asg0 = lastAsg();
   if (window.L) return drawMapReal(asg0, Fm0);
   $("mapReal").hidden = true; $("map").hidden = false;
   $("mapNote").textContent = "Sin conexión al servidor de mapas: se muestra un esquema de la costa, no a escala. Grosor de cada línea = sinergia F.";
@@ -309,9 +311,9 @@ function drawMap() {
   const pos = cur.zonas.map((z, j) => Z[z] ? P(Z[z]) : (() => { const c = coast[Math.round(2 + j * (coast.length - 4) / Math.max(1, n - 1))]; return [c[0] + 26, c[1]]; })());
   let s = `<path d="M0,0 L${coast.map(p => p.join(",")).join(" L")} L0,470Z" fill="var(--qiskit)" fill-opacity=".10"/><path d="M${coast.map(p => p.join(",")).join(" L")}" fill="none" stroke="var(--qiskit)" stroke-width="2"/>`;
   s += `<text x="16" y="300" fill="var(--qiskit)" font-size="11" transform="rotate(-90 16 300)" letter-spacing="3">OCÉANO PACÍFICO</text>`;
-  const asg = R && !stale && R.n === n ? R.perms[bestRun().indice] : null, Fm = Math.max(1, ...cur.F.flat());
+  const asg = lastAsg(), Fm = Math.max(1, ...cur.F.flat());
   if (asg) for (let i = 0; i < n; i++) for (let k = i + 1; k < n; k++) { const [x1, y1] = pos[asg[i]], [x2, y2] = pos[asg[k]];
-    s += `<line class="flow" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="var(--otono)" stroke-width="${(1 + 5 * cur.F[i][k] / Fm).toFixed(1)}" stroke-opacity=".85"/>`; }
+    s += `<line class="flow" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="var(--otono)" stroke-width="${(1 + 5 * cur.F[i][k] / Fm).toFixed(1)}" stroke-opacity="${stale ? .55 : .85}"${stale ? ` stroke-dasharray="5 6"` : ""}/>`; }
   cur.zonas.forEach((z, j) => { const [x, y] = pos[j], b = asg ? asg.indexOf(j) : -1;
     s += `<circle cx="${x}" cy="${y}" r="${b >= 0 ? 9 : 6}" fill="${b >= 0 ? "var(--qiskit)" : "var(--surface)"}" stroke="var(--ink)" stroke-width="1.5"/><text x="${x + 14}" y="${y + 4}" font-size="11" font-weight="600" fill="var(--ink)" style="font-family:var(--sans)">${esc(z)}</text>${b >= 0 ? `<text x="${x + 14}" y="${y + 17}" font-size="9" fill="var(--muted)">${esc(cur.brigadas[b])}</text>` : ""}`; });
   if (!asg) s += `<text x="150" y="455" text-anchor="middle" font-size="10" fill="var(--muted)">Resuelve para ver la asignación</text>`;
