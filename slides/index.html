@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Q-Niño · Pitch final</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+:root{
+  --night:#2A1250; --night2:#3A1C6B; --cream:#F6F1E9; --paper:#FFFDF9; --ink:#1E1236; --muted:#6B5F80; --line:#E2D8EC;
+  --violet:#5B3CC4; --violet2:#7C5CE0; --lilac:#E9E1F8; --mint:#62D4AE; --coral:#EE8A6A; --pink:#FF7EB5; --sand:#F8E9CF;
+  --sans:"IBM Plex Sans",system-ui,"Segoe UI",Arial,sans-serif; --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#120826;overflow:hidden;font-family:var(--sans);color:var(--ink)}
+#stage{position:fixed;inset:0}
+#deck{width:1600px;height:900px;position:absolute;left:50%;top:50%;transform-origin:center}
+.slide{position:absolute;inset:0;padding:56px 80px 44px;display:flex;flex-direction:column;background:var(--cream);overflow:hidden;
+  opacity:0;visibility:hidden;transition:opacity .6s ease,visibility 0s .6s;border-radius:6px}
+.slide.on{opacity:1;visibility:visible;transition:opacity .6s ease}
+.slide.dark{background:radial-gradient(1200px 700px at 85% 10%,#43207A 0%,transparent 60%),var(--night);color:#fff}
+
+/* cabecera y pie */
+.top{display:flex;align-items:center;gap:48px;font:600 15px var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding-bottom:18px;border-bottom:1px solid var(--line)}
+.top b{font-size:22px;letter-spacing:0;text-transform:none;color:var(--ink)}
+.top span:last-child{margin-left:auto;letter-spacing:.06em}
+.dark .top{color:#BFB0DD;border-color:rgba(255,255,255,.14)} .dark .top b{color:#fff}
+.foot{margin-top:auto;display:flex;justify-content:space-between;align-items:center;padding-top:16px;border-top:1px solid var(--line);font-size:14px;color:var(--muted)}
+.foot b{font:600 15px var(--mono);color:var(--ink)}
+.dark .foot{border-color:rgba(255,255,255,.14);color:#BFB0DD} .dark .foot b{color:#fff}
+h2{font-size:52px;line-height:1.1;margin:44px 0 8px;letter-spacing:-.01em}
+.sub{font-size:22px;color:var(--muted);margin:0}
+.dark .sub{color:#CFC3EA}
+
+/* entradas: cada .a entra cuando su diapositiva está activa */
+.a{opacity:0}
+.on .a{animation:up .8s cubic-bezier(.2,.75,.2,1) both;animation-delay:calc(var(--d,0) * 1ms)}
+.on .a.l{animation-name:left} .on .a.r{animation-name:right} .on .a.z{animation-name:zoom} .on .a.f{animation-name:fade}
+@keyframes up{from{opacity:0;transform:translateY(34px)}to{opacity:1;transform:none}}
+@keyframes left{from{opacity:0;transform:translateX(-50px)}to{opacity:1;transform:none}}
+@keyframes right{from{opacity:0;transform:translateX(50px)}to{opacity:1;transform:none}}
+@keyframes zoom{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:none}}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.draw{stroke-dasharray:1;stroke-dashoffset:1}
+.on .draw{animation:draw 1.1s cubic-bezier(.5,0,.2,1) both;animation-delay:calc(var(--d,0) * 1ms)}
+@keyframes draw{to{stroke-dashoffset:0}}
+.grow{transform:scaleX(0);transform-origin:left}
+.on .grow{animation:grow .9s cubic-bezier(.3,.7,.2,1) both;animation-delay:calc(var(--d,0) * 1ms)}
+@keyframes grow{to{transform:scaleX(1)}}
+.num{font-variant-numeric:tabular-nums}
+
+/* fondo de partículas en las oscuras */
+.dots{position:absolute;inset:0;pointer-events:none;opacity:.55}
+.dots i{position:absolute;width:6px;height:6px;border-radius:50%;background:var(--lilac);opacity:.0;animation:float 9s linear infinite}
+@keyframes float{0%{opacity:0;transform:translateY(40px)}15%{opacity:.7}85%{opacity:.5}100%{opacity:0;transform:translateY(-260px)}}
+
+/* 1 · portada */
+.s1{display:grid;grid-template-columns:1.25fr 1fr;gap:60px;margin-top:40px;flex:1}
+.s1 h1{font-size:120px;margin:10px 0 6px;letter-spacing:-.02em;line-height:1}
+.s1 .claim{font-size:46px;font-weight:700;line-height:1.15;margin:0 0 22px}
+.s1 .lead{font-size:24px;color:#D9CEF0;margin:0;line-height:1.4}
+.graph{margin-top:34px}
+.graph text{font:500 18px var(--sans);fill:#D9CEF0}
+.flowdot{fill:#fff}
+.card1{align-self:start;background:var(--paper);color:var(--ink);border-left:6px solid var(--mint);padding:34px 40px;border-radius:4px;box-shadow:0 30px 60px rgba(0,0,0,.35)}
+.card1 .k{font:600 15px var(--sans);letter-spacing:.1em;color:var(--violet);text-transform:uppercase}
+.card1 h3{font-size:30px;margin:14px 0 24px}
+.card1 .big{font-size:108px;font-weight:700;line-height:1;letter-spacing:-.02em}
+.card1 .u{font-size:24px;margin:10px 0 26px;color:var(--muted)}
+.card1 hr{border:0;border-top:1px solid var(--line);margin:0 0 22px}
+.card1 .r{font-size:22px;font-weight:600}
+.card1 small{display:block;font-size:17px;color:var(--muted);margin-top:10px;line-height:1.5}
+.rain{position:absolute;right:80px;top:110px;width:470px;height:420px;pointer-events:none;overflow:hidden;opacity:.35}
+.rain i{position:absolute;top:-30px;width:2px;height:26px;background:linear-gradient(transparent,#B8C4FF);animation:drop 1.1s linear infinite}
+@keyframes drop{to{transform:translateY(470px)}}
+
+/* 2 · modelo */
+.s2{display:grid;grid-template-columns:1fr 70px 1fr;align-items:center;margin-top:52px}
+.mat{display:grid;gap:26px}
+.mat .hd{display:flex;align-items:center;gap:26px}
+.mat .L{font-size:96px;font-weight:700;color:var(--violet);line-height:.8}
+.mat .t{font-size:28px;font-weight:600;line-height:1.2}
+.pair{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:20px;font-size:26px;font-weight:600}
+.pair svg{overflow:visible}
+.pair .v{font:700 26px var(--sans);fill:var(--violet)}
+.times{font-size:56px;color:var(--muted);text-align:center}
+.contrib{display:flex;align-items:center;gap:60px;margin-top:40px;padding:26px 0;border-top:1px solid var(--line);font-size:22px;color:var(--muted)}
+.contrib b{font-size:40px;color:var(--violet)}
+.formula{margin-top:20px;background:var(--night);color:#fff;border-radius:6px;padding:26px 36px;position:relative;overflow:hidden}
+.formula b{font-size:36px}
+.formula small{display:block;margin-top:8px;color:#CFC3EA;font-size:17px}
+.formula::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.14) 50%,transparent 70%);transform:translateX(-100%);animation:shine 4s 2s ease-in-out infinite}
+@keyframes shine{40%,100%{transform:translateX(100%)}}
+
+/* 3 · Grover */
+.pipe{display:grid;grid-template-columns:repeat(5,1fr);gap:34px;margin-top:52px;position:relative}
+.st{position:relative;background:var(--lilac);border-radius:6px;padding:26px 24px;min-height:150px;transition:background .4s,color .4s,transform .4s,box-shadow .4s}
+.st b{display:block;font-size:26px;margin-bottom:12px}
+.st span{font-size:19px;color:var(--muted);line-height:1.35;transition:color .4s}
+.st:not(:last-child)::after{content:"→";position:absolute;right:-27px;top:50%;transform:translateY(-50%);font-size:26px;color:var(--violet)}
+.st.hot{background:var(--violet);color:#fff;transform:translateY(-8px);box-shadow:0 18px 34px rgba(91,60,196,.35)}
+.st.hot span{color:#E7DEFF}
+.st.first{background:var(--night);color:#fff} .st.first span{color:#CFC3EA}
+.loop{margin:16px 0 0;height:56px}
+.loop text{font:600 19px var(--sans);fill:var(--violet)}
+.loop .ar{stroke-dasharray:8 8;animation:march 1s linear infinite}
+@keyframes march{to{stroke-dashoffset:-16}}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);margin-top:30px}
+.stats div{display:flex;align-items:center;gap:28px;padding:10px 40px;border-left:1px solid var(--line)}
+.stats div:first-child{border:0;padding-left:0}
+.stats b{font-size:84px;line-height:1}
+.stats span{font-size:22px;color:var(--muted);line-height:1.3}
+.note{font-size:19px;color:var(--muted);margin-top:30px}
+
+/* 4 · demo */
+.s4{display:grid;grid-template-columns:1fr 400px;gap:60px;margin-top:40px}
+.rows .lab{display:grid;grid-template-columns:1fr 160px 1fr;font:600 15px var(--sans);letter-spacing:.1em;color:var(--muted);padding-bottom:14px}
+.rw{display:grid;grid-template-columns:1fr 160px 1fr;align-items:center;font-size:28px;font-weight:600;padding:22px 0;border-bottom:1px solid var(--line)}
+.rw svg{overflow:visible}
+.cost{background:var(--night);color:#fff;border-radius:6px;padding:34px 36px;align-self:start;box-shadow:0 26px 50px rgba(42,18,80,.3)}
+.cost .k{font:600 15px var(--sans);letter-spacing:.1em;color:#CFC3EA}
+.cost .big{font-size:120px;font-weight:700;line-height:1;margin:22px 0 18px}
+.cost p{margin:0;font-size:22px;color:var(--mint);font-weight:600;line-height:1.35}
+.cost small{display:block;margin-top:24px;color:#CFC3EA;font-size:17px;line-height:1.45}
+.btn{display:inline-flex;align-items:center;gap:12px;margin-top:34px;background:var(--violet);color:#fff;text-decoration:none;font-size:22px;font-weight:600;padding:16px 30px;border-radius:4px;transition:transform .2s,box-shadow .2s}
+.btn:hover{transform:translateY(-2px);box-shadow:0 12px 24px rgba(91,60,196,.35)}
+.btnrow{display:flex;align-items:center;gap:24px}
+.btnrow span{color:var(--violet);font-size:20px;text-decoration:underline}
+
+/* 5 · resultados */
+.s5{display:grid;grid-template-columns:440px 1fr;gap:70px;margin-top:40px}
+.s5 .big{font-size:150px;font-weight:700;color:var(--violet);line-height:1;letter-spacing:-.02em}
+.s5 h3{font-size:32px;margin:18px 0 14px}
+.s5 p{font-size:20px;color:var(--muted);margin:0;line-height:1.45}
+.tbl .h,.tbl .r{display:grid;grid-template-columns:1fr 1fr 1fr;padding:0 18px}
+.tbl .h{font:600 15px var(--sans);letter-spacing:.1em;color:var(--muted);padding-bottom:14px}
+.tbl .r{font-size:26px;padding:16px 18px;border-bottom:1px solid var(--line);position:relative}
+.tbl .r.hl{background:var(--lilac);font-weight:700}
+.tbl .r .ok{color:#1C8C63;font-weight:700}
+.strip{margin-top:auto;margin-bottom:24px;display:flex;align-items:center;gap:60px;background:var(--sand);border-left:5px solid var(--coral);padding:22px 30px;font-size:22px;font-weight:600}
+.strip span{font:600 15px var(--sans);letter-spacing:.1em;color:#9A5A3A}
+
+/* 6 · cierre */
+.cols{display:grid;grid-template-columns:repeat(3,1fr);gap:60px;margin-top:56px}
+.cols .bar{height:3px;border-radius:2px;margin-bottom:28px}
+.cols b.n{font-size:56px;display:block}
+.cols h4{font-size:30px;margin:14px 0 14px}
+.cols p{font-size:21px;color:#D9CEF0;margin:0;line-height:1.45}
+.end{display:flex;justify-content:space-between;align-items:end;margin-top:auto;margin-bottom:26px}
+.end h3{font-size:56px;margin:0;line-height:1.12}
+.end .qa{font:700 24px var(--sans);letter-spacing:.08em;text-align:right;color:var(--mint)}
+.glow{animation:glow 3.5s ease-in-out infinite}
+@keyframes glow{50%{text-shadow:0 0 30px rgba(98,212,174,.6)}}
+
+/* controles */
+#bar{position:fixed;left:0;top:0;height:4px;background:linear-gradient(90deg,var(--mint),var(--pink),var(--violet2));transition:width .5s ease;z-index:9}
+#hud{position:fixed;right:18px;bottom:14px;display:flex;gap:8px;z-index:9;opacity:.25;transition:opacity .3s}
+#hud:hover{opacity:1}
+#hud button{border:0;border-radius:8px;background:rgba(255,255,255,.14);color:#fff;font:600 14px var(--sans);padding:8px 12px;cursor:pointer}
+#notes{position:fixed;left:0;right:0;bottom:0;max-height:42vh;overflow:auto;background:rgba(16,8,32,.96);color:#EDE6FA;padding:18px 28px 22px;z-index:8;font-size:17px;line-height:1.5;border-top:2px solid var(--violet2)}
+#notes h5{margin:0 0 8px;font:600 14px var(--mono);color:var(--mint);display:flex;gap:20px}
+#notes p{margin:0 0 8px;white-space:pre-line}
+#help{position:fixed;left:18px;bottom:14px;color:#9C8DBA;font:500 13px var(--sans);z-index:9;opacity:.6}
+@media (prefers-reduced-motion: reduce){.a,.draw,.grow{animation:none!important;opacity:1!important;transform:none!important;stroke-dashoffset:0!important}}
+</style>
+</head>
+<body>
+<div id="bar"></div>
+<div id="stage"><div id="deck">
+
+<!-- 1 · Portada -->
+<section class="slide dark" data-notes="Sebastian | 0:00–0:30 · EL PROBLEMA
+Los registros de SENAMHI muestran la escala del reto: en mil novecientos noventa y ocho, la estación Miraflores, en Piura, acumuló más de mil ochocientos milímetros de lluvia.
+Organizar la respuesta exige coordinar brigadas y destinos. Somos Quantum Action y construimos Q-Niño para comparar esas asignaciones y apoyar decisiones mejor informadas.
+(No presentar el dato como actual ni como promedio regional.)">
+  <div class="dots"></div>
+  <div class="top a f"><b>Q-Niño</b><span>Quantum Action</span><span>Qiskit Fall Fest 2026 · Final</span></div>
+  <div class="rain"></div>
+  <div class="s1">
+    <div>
+      <h1 class="a" style="--d:150">Q-Niño</h1>
+      <p class="claim a" style="--d:350">Coordinar brigadas<br>cuando más importa.</p>
+      <p class="lead a" style="--d:550">Logística humanitaria frente<br>al Fenómeno de El Niño.</p>
+      <svg class="graph" width="620" height="190" viewBox="0 0 620 190">
+        <path id="g1" class="draw" style="--d:900" pathLength="1" d="M30 90 L280 90" stroke="var(--mint)" stroke-width="4" fill="none"/>
+        <path id="g2" class="draw" style="--d:1300" pathLength="1" d="M280 90 L530 40" stroke="var(--coral)" stroke-width="4" fill="none"/>
+        <path id="g3" class="draw" style="--d:1450" pathLength="1" d="M280 90 L530 150" stroke="var(--coral)" stroke-width="4" fill="none"/>
+        <circle class="a z" style="--d:800" cx="30" cy="90" r="13" fill="var(--mint)"/>
+        <circle class="a z" style="--d:1100" cx="280" cy="90" r="13" fill="var(--mint)"/>
+        <circle class="a z" style="--d:1650" cx="530" cy="40" r="13" fill="var(--coral)"/>
+        <circle class="a z" style="--d:1750" cx="530" cy="150" r="13" fill="var(--coral)"/>
+        <circle class="flowdot" r="5"><animateMotion dur="2.6s" repeatCount="indefinite" path="M30 90 L280 90 L530 40"/></circle>
+        <circle class="flowdot" r="5"><animateMotion dur="2.6s" begin="1.3s" repeatCount="indefinite" path="M30 90 L280 90 L530 150"/></circle>
+        <text class="a f" style="--d:1800" x="0" y="135">Brigadas</text>
+        <text class="a f" style="--d:1900" x="430" y="188">Destinos</text>
+      </svg>
+    </div>
+    <div class="card1 a r" style="--d:700">
+      <div class="k">Un registro del reto</div>
+      <h3>Miraflores, Piura</h3>
+      <div class="big num" data-count="1857.7" data-dec="1">0</div>
+      <div class="u">mm acumulados en 1998</div>
+      <hr>
+      <div class="r">365 registros · sin faltantes</div>
+      <small>Dato histórico de una estación.<br>Contexto climático para el proyecto.</small>
+    </div>
+  </div>
+  <div class="foot a f" style="--d:400"><span>SENAMHI · estación Miraflores (000207), Piura · 1998 · suma propia de 365 registros diarios.</span><b>01 / 06</b></div>
+</section>
+
+<!-- 2 · Modelo -->
+<section class="slide" data-notes="Jefry | 0:30–1:10 · EL MODELO
+Modelamos el despliegue como un problema de asignación cuadrática: una brigada por zona y una zona por brigada.
+La matriz F representa cuánto interactúan dos equipos. La matriz D representa la separación entre sus destinos. Minimizamos la suma de esos productos, contando cada pareja una vez. Por eso, mover una brigada cambia varias relaciones a la vez.
+El contexto climático se sustenta en fuentes oficiales. Las matrices de esta demo siguen siendo sintéticas; vincular lluvia, rutas y coordinación requiere calibración.">
+  <div class="top"><b>Q-Niño</b><span>Quantum Action</span><span>Qiskit Fall Fest 2026 · Final</span></div>
+  <h2 class="a">Una asignación cambia varias relaciones</h2>
+  <p class="sub a" style="--d:150">Una brigada por zona. Una zona por brigada.</p>
+  <div class="s2">
+    <div class="mat a l" style="--d:350">
+      <div class="hd"><span class="L">F</span><span class="t">Interacción<br>entre brigadas</span></div>
+      <div class="pair"><span>Médica</span><svg height="40" viewBox="0 0 200 40" preserveAspectRatio="none"><path class="draw" style="--d:800" pathLength="1" d="M8 28 H192" stroke="var(--violet)" stroke-width="4"/><circle cx="8" cy="28" r="7" fill="var(--violet)"/><circle class="a z" style="--d:1500" cx="192" cy="28" r="7" fill="var(--violet)"/><text class="v a f" style="--d:1400" x="100" y="14" text-anchor="middle">9</text></svg><span>Rescate</span></div>
+    </div>
+    <div class="times a z" style="--d:1700">×</div>
+    <div class="mat a r" style="--d:550">
+      <div class="hd"><span class="L">D</span><span class="t">Separación<br>entre destinos</span></div>
+      <div class="pair"><span>Trujillo</span><svg height="40" viewBox="0 0 200 40" preserveAspectRatio="none"><path class="draw" style="--d:1000" pathLength="1" d="M8 28 H192" stroke="var(--violet)" stroke-width="4"/><circle cx="8" cy="28" r="7" fill="var(--violet)"/><circle class="a z" style="--d:1600" cx="192" cy="28" r="7" fill="var(--violet)"/><text class="v a f" style="--d:1500" x="100" y="14" text-anchor="middle">5</text></svg><span>Lambayeque</span></div>
+    </div>
+  </div>
+  <div class="contrib a" style="--d:1900"><span>Esta pareja aporta</span><b>9 × 5 = <span class="num" data-count="45" data-delay="2100">0</span></b><span>unidades de coste ponderado</span></div>
+  <div class="formula a" style="--d:2300"><b>Minimizar C(p) = Σ F[i,k] × D[p(i),p(k)]</b><small>i &lt; k · el coste total suma todas las parejas</small></div>
+  <div class="foot"><span>Modelo QAP · cada pareja se cuenta una vez · matrices F/D sintéticas en esta demo.</span><b>02 / 06</b></div>
+</section>
+
+<!-- 3 · Grover -->
+<section class="slide" data-notes="Luis | 1:10–1:55 · IMPLEMENTACIÓN Y COMPONENTE CUÁNTICO
+Exploramos QUBO y QAOA y después implementamos búsqueda adaptativa de Grover.
+Un bucle clásico mantiene la mejor asignación encontrada. El oráculo marca las alternativas de menor coste mediante un cambio de fase; la difusión amplifica su probabilidad y la medición produce otro candidato.
+Qiskit construye y simula esos circuitos. Para cuatro brigadas, las veinticuatro asignaciones se indexan con cinco qubits, frente a dieciséis variables del QUBO. Son qubits de índice: un oráculo completo necesitaría recursos adicionales. Los índices sobrantes se descartan.">
+  <div class="top"><b>Q-Niño</b><span>Quantum Action</span><span>Qiskit Fall Fest 2026 · Final</span></div>
+  <h2 class="a">Grover explora asignaciones completas</h2>
+  <p class="sub a" style="--d:150">Búsqueda adaptativa: conservar, amplificar y volver a comparar.</p>
+  <div class="pipe" id="pipe">
+    <div class="st first a" style="--d:400"><b>Umbral</b><span>Mejor coste conocido</span></div>
+    <div class="st a" style="--d:600"><b>Superposición</b><span>Índices en un registro cuántico</span></div>
+    <div class="st a" style="--d:800"><b>Oráculo</b><span>Marca alternativas de menor coste</span></div>
+    <div class="st a" style="--d:1000"><b>Difusión</b><span>Amplifica los estados marcados</span></div>
+    <div class="st a" style="--d:1200"><b>Medición</b><span>Obtiene otro candidato</span></div>
+  </div>
+  <svg class="loop a f" style="--d:1400" width="100%" viewBox="0 0 1440 56" preserveAspectRatio="none">
+    <path class="ar" d="M1350 4 V30 H90 V8" stroke="var(--violet)" stroke-width="2.5" fill="none"/>
+    <path d="M82 16 L90 4 L98 16" stroke="var(--violet)" stroke-width="2.5" fill="none"/>
+    <rect x="560" y="16" width="320" height="30" fill="var(--cream)"/>
+    <text x="720" y="38" text-anchor="middle">Si mejora, actualiza el umbral</text>
+  </svg>
+  <div class="stats">
+    <div class="a" style="--d:1600"><b class="num" data-count="24" data-delay="1700">0</b><span>asignaciones<br>para N = 4</span></div>
+    <div class="a" style="--d:1750"><b class="num" style="color:var(--violet)" data-count="5" data-delay="1850">0</b><span>qubits<br>de índice</span></div>
+    <div class="a" style="--d:1900"><b class="num" data-count="16" data-delay="2000">0</b><span>variables<br>QUBO</span></div>
+  </div>
+  <p class="note a f" style="--d:2200">Un oráculo completo necesita recursos adicionales. Los índices sobrantes se descartan.</p>
+  <div class="foot"><span>Qiskit: circuitos y simulación · control adaptativo clásico · oráculo idealizado con costes precalculados.</span><b>03 / 06</b></div>
+</section>
+
+<!-- 4 · Demo -->
+<section class="slide" data-notes="Luis | 1:55–2:20 · DEMO BREVE
+Aquí vemos cuatro brigadas y cuatro zonas. El resultado precalculado con Qiskit tiene coste doscientos dos, igual al óptimo exacto de esta matriz. Podemos inspeccionar la asignación, las relaciones que más pesan y las etapas del circuito.
+(No ejecutar N=6 en directo. Respaldo de la asignación registrada: [3,2,1,0].)">
+  <div class="top"><b>Q-Niño</b><span>Quantum Action</span><span>Qiskit Fall Fest 2026 · Final</span></div>
+  <h2 class="a">Una decisión que se puede inspeccionar</h2>
+  <p class="sub a" style="--d:150">Demo N = 4 · cuatro brigadas, cuatro zonas.</p>
+  <div class="s4">
+    <div class="rows">
+      <div class="lab a f" style="--d:300"><span>Brigada</span><span></span><span>Destino</span></div>
+      <div class="rw a l" style="--d:450"><span>Médica</span><svg height="20" viewBox="0 0 120 20"><path class="draw" style="--d:800" pathLength="1" d="M6 10 H108" stroke="var(--violet2)" stroke-width="3"/><circle cx="6" cy="10" r="6" fill="var(--violet2)"/><path d="M104 4 L114 10 L104 16" fill="var(--violet2)" class="a f" style="--d:1500"/></svg><span>Trujillo</span></div>
+      <div class="rw a l" style="--d:600"><span>Rescate</span><svg height="20" viewBox="0 0 120 20"><path class="draw" style="--d:950" pathLength="1" d="M6 10 H108" stroke="var(--violet2)" stroke-width="3"/><circle cx="6" cy="10" r="6" fill="var(--violet2)"/><path d="M104 4 L114 10 L104 16" fill="var(--violet2)" class="a f" style="--d:1650"/></svg><span>Lambayeque</span></div>
+      <div class="rw a l" style="--d:750"><span>Logística</span><svg height="20" viewBox="0 0 120 20"><path class="draw" style="--d:1100" pathLength="1" d="M6 10 H108" stroke="var(--coral)" stroke-width="3"/><circle cx="6" cy="10" r="6" fill="var(--coral)"/><path d="M104 4 L114 10 L104 16" fill="var(--coral)" class="a f" style="--d:1800"/></svg><span>Tumbes</span></div>
+      <div class="rw a l" style="--d:900"><span>Agua y saneamiento</span><svg height="20" viewBox="0 0 120 20"><path class="draw" style="--d:1250" pathLength="1" d="M6 10 H108" stroke="#2E9E77" stroke-width="3"/><circle cx="6" cy="10" r="6" fill="#2E9E77"/><path d="M104 4 L114 10 L104 16" fill="#2E9E77" class="a f" style="--d:1950"/></svg><span>Piura</span></div>
+      <div class="btnrow a" style="--d:2100"><a class="btn" href="/#simulador" target="_blank" rel="noopener">Abrir simulador ↗</a><span>q-nino.vercel.app</span></div>
+    </div>
+    <div class="cost a r" style="--d:1200">
+      <div class="k">COSTE DE LA ASIGNACIÓN</div>
+      <div class="big num" data-count="202" data-delay="1400">0</div>
+      <p>Igual al óptimo exacto<br>de esta matriz.</p>
+      <small>Coste ponderado;<br>no horas reales.</small>
+    </div>
+  </div>
+  <div class="foot"><span>Resultado registrado en datos.js · N = 4 · Qiskit precalculado · datos sintéticos.</span><b>04 / 06</b></div>
+</section>
+
+<!-- 5 · Resultados -->
+<section class="slide" data-notes="Jefry | 2:20–3:00 · RESULTADOS Y ESCALABILIDAD
+En cuatro instancias sintéticas, de tres a seis brigadas, obtuvimos el óptimo en cuarenta de cuarenta ejecuciones registradas. Es evidencia acotada a esas pruebas.
+[BLOQUE PENDIENTE, máximo 45 palabras: resultados reales N=10 / N≥14 — método clásico frente al híbrido, calidad factible, tiempo total y memoria.]
+También debemos aislar el aporte del componente cuántico.">
+  <div class="top"><b>Q-Niño</b><span>Quantum Action</span><span>Qiskit Fall Fest 2026 · Final</span></div>
+  <h2 class="a">Resultados que podemos contrastar</h2>
+  <p class="sub a" style="--d:150">Calidad de solución en cuatro instancias sintéticas.</p>
+  <div class="s5">
+    <div class="a l" style="--d:350">
+      <div class="big num"><span data-count="40" data-delay="500">0</span>/40</div>
+      <h3>resultados óptimos<br>registrados</h3>
+      <p>Evidencia acotada<br>a estas cuatro instancias.</p>
+    </div>
+    <div class="tbl">
+      <div class="h a f" style="--d:500"><span>TAMAÑO</span><span>COSTE ÓPTIMO</span><span>ACIERTOS</span></div>
+      <div class="r hl a r" style="--d:650"><span>N = 3</span><span>285</span><span class="ok">10 / 10</span></div>
+      <div class="r hl a r" style="--d:800"><span>N = 4</span><span>202</span><span class="ok">10 / 10</span></div>
+      <div class="r a r" style="--d:950"><span>N = 5</span><span>415</span><span class="ok">10 / 10</span></div>
+      <div class="r a r" style="--d:1100"><span>N = 6</span><span>933</span><span class="ok">10 / 10</span></div>
+    </div>
+  </div>
+  <div class="strip a" style="--d:1400"><span>ESCALABILIDAD PARA LA FINAL</span>N = 10 / N ≥ 14: resultados del equipo pendientes de integrar.</div>
+  <div class="foot"><span>datos.js · semilla 42 · 10 corridas por tamaño · óptimos de referencia calculados por enumeración.</span><b>05 / 06</b></div>
+</section>
+
+<!-- 6 · Cierre -->
+<section class="slide dark" data-notes="Fabricio | 3:00–3:30 · APORTE Y OPORTUNIDAD
+Nuestro aporte es que cada decisión se puede revisar: qué brigada va a cada zona, qué relaciones pesan más y cómo se compara con una referencia clásica. La oportunidad es reoptimizar cuando cambien las rutas o la información disponible. La mejora de consultas de Grover es teórica; convertirla en ahorro operativo es nuestra siguiente validación.
+Sebastian | 3:30–3:45 · CIERRE
+Q-Niño convierte un problema complejo en decisiones que podemos examinar. Buscamos una coordinación mejor informada cuando más importa. Somos Quantum Action. Gracias.">
+  <div class="dots"></div>
+  <div class="top"><b>Q-Niño</b><span>Quantum Action</span><span>Qiskit Fall Fest 2026 · Final</span></div>
+  <h2 class="a">Cada decisión puede revisarse.</h2>
+  <p class="sub a" style="--d:150">La oportunidad es volver a decidir cuando cambie la información.</p>
+  <div class="cols">
+    <div class="a" style="--d:400"><div class="bar grow" style="--d:450;background:var(--mint)"></div><b class="n" style="color:var(--mint)">01</b><h4>Aporte verificable</h4><p>Asignación, coste y<br>comparación clásica.</p></div>
+    <div class="a" style="--d:650"><div class="bar grow" style="--d:700;background:#fff"></div><b class="n">02</b><h4>Reoptimizar</h4><p>Actualizar la decisión<br>si cambian rutas o demanda.</p></div>
+    <div class="a" style="--d:900"><div class="bar grow" style="--d:950;background:var(--coral)"></div><b class="n" style="color:var(--coral)">03</b><h4>Potencial cuántico</h4><p>Explorar menos consultas<br>a un oráculo eficiente.</p></div>
+  </div>
+  <div class="end"><h3 class="a" style="--d:1400">Mejor coordinación,<br>cuando más importa.</h3><div class="qa a z glow" style="--d:1800">QUANTUM<br>ACTION</div></div>
+  <div class="foot"><span>Ventaja de consultas teórica frente a búsqueda sin estructura. Ahorro total y tiempo en QPU por medir.</span><b>06 / 06</b></div>
+</section>
+
+</div></div>
+
+<div id="notes" hidden><h5><span id="nSlide"></span><span id="nTime">00:00</span></h5><div id="nText"></div></div>
+<div id="help">← → o clic: avanzar · F: pantalla completa · N: notas y cronómetro</div>
+<div id="hud"><button id="bPrev" type="button">←</button><button id="bNext" type="button">→</button><button id="bNotes" type="button">Notas</button><button id="bFull" type="button">Pantalla completa</button></div>
+
+<script src="/slides/deck.js"></script>
+</body>
+</html>

@@ -1,0 +1,31 @@
+Q-NIÑO | CÓMO INCORPORAR DATOS OFICIALES AL PITCH
+25 de octubre de 2026. Revisión de guia_grover_qnino.html y del repositorio.
+
+SEPARAR TRES CAPAS
+1. Evidencia observada: precipitación, ubicación y periodo medidos por SENAMHI; reportes oficiales de afectación o transitabilidad cuando estén disponibles.
+2. Transformación: una regla reproducible para seleccionar zonas o construir escenarios de accesibilidad. Debe conservar unidades, fechas, faltantes y representatividad espacial.
+3. Supuestos: intensidad de coordinación entre brigadas, multiplicadores de viaje y probabilidades no calibradas. Su presencia impide llamar completamente reales a las matrices.
+
+QUÉ PUEDE ALIMENTAR CADA FUENTE
+- SENAMHI: lluvia observada por estación y fecha, contexto climático y escenarios candidatos. No entrega por sí sola horas entre ciudades ni sinergia entre brigadas.
+- ENFEN: diagnóstico/probabilidad del fenómeno en el ámbito y horizonte del comunicado. Esa probabilidad no equivale directamente a lluvia intensa o bloqueo de una carretera concreta.
+- MTC / Provías / COEN: reportes sobre tramos afectados. Para obtener D se necesita además una red vial y un cálculo de rutas o mediciones de tiempo. Los tiempos calculados por un motor de rutas son estimaciones del modelo, no observaciones de SENAMHI.
+- INDECI / CENEPRED: eventos, exposición o riesgo según la metodología de cada fuente. No intercambiar personas afectadas, damnificadas, expuestas y en riesgo.
+- F: la guía propone valoración de expertos. Hasta obtener y documentar esas respuestas, F sigue siendo un supuesto de demostración.
+
+CORRECCIÓN NECESARIA EN LOS ESCENARIOS DE LA GUÍA
+Si cada escenario multiplica TODA la matriz D por un escalar no negativo m_s y F permanece fija, entonces C_s(p)=m_s*C_base(p). Con los costes no negativos de este modelo, el peor caso solo multiplica C_base por max(m_s), y el promedio ponderado por sum(w_s*m_s). La asignación óptima se mantiene; si todos los factores efectivos son cero, todas las asignaciones empatan.
+Por tanto, esa construcción no demuestra adaptación del despliegue a lluvias. Para que el clima pueda cambiar la decisión, se necesitan efectos diferenciados por tramo o pareja de zonas, restricciones de accesibilidad o requisitos operativos expresos, sustentados en datos. No inventar multiplicadores de lluvia por ruta.
+Comprobación ilustrativa guardada en uniform_scenario_check.json; no es calibración meteorológica.
+
+OTRAS PRECISIONES PARA EL PITCH
+- La expresión con factor 1/2 coincide con contar i<k si los datos tienen la simetría adecuada. El código actual usa matrices simétricas; la pérdida al simetrizar tiempos dirigidos debe explicarse si se aplica.
+- Un índice válido representa una permutación, pero el registro binario puede tener estados sobrantes. Se descartan, no se supone que nunca se miden.
+- El código de ejemplo de la guía es orientativo: el repositorio usa qiskit_grover.py y grover_adaptive devuelve cuatro valores.
+- No es viable escalar a N>=14 construyendo explícitamente la tabla de todas las N! permutaciones. La final requiere evidencia del método realmente ejecutado.
+- El benchmark oficial del reto es MIPLIB qap10. Las matrices sintéticas actuales de la demo y los datos climáticos oficiales son familias distintas.
+
+FORMULACIÓN PERMITIDA TRAS VERIFICAR LOS ARCHIVOS OFICIALES
+"Contrastamos el problema con registros oficiales de SENAMHI. Esos datos sustentan el contexto climático; las matrices del experimento siguen identificadas como sintéticas. Estamos definiendo cómo vincular observaciones por zona con rutas y restricciones operativas."
+
+No afirmar que el optimizador ya usa lluvia, rutas reales, probabilidades calibradas o datos operativos integrados hasta que exista la transformación y se ejecute el caso correspondiente.

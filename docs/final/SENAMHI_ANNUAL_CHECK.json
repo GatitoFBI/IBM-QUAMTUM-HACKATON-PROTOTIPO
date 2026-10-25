@@ -1,0 +1,30 @@
+[
+  {
+    "station_code": "000207",
+    "1998_total_mm": "1857.7",
+    "days": 365,
+    "missing": 0,
+    "complete_year_count": 32,
+    "year_range": [
+      "1972",
+      "2013"
+    ],
+    "median_mm": "61.21",
+    "ratio": "30.34961607580460709034471492",
+    "method": "Independent Decimal sum by explicit year labels from original HTML; no inferred day/month used."
+  },
+  {
+    "station_code": "000132",
+    "1998_total_mm": "2433.6",
+    "days": 365,
+    "missing": 0,
+    "complete_year_count": 32,
+    "year_range": [
+      "1964",
+      "2014"
+    ],
+    "median_mm": "189.15",
+    "ratio": "12.86597938144329896907216495",
+    "method": "Independent Decimal sum by explicit year labels from original HTML; no inferred day/month used."
+  }
+]

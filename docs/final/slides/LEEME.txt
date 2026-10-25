@@ -1,0 +1,31 @@
+Q-NIÑO | DIAPOSITIVAS PARA EL PITCH FINAL
+6 diapositivas, formato 16:9, español. Preparadas el 25/10/2026.
+
+ARCHIVOS
+- Q_Nino_Pitch_Final_4min.pptx: PowerPoint editable, con texto y formas nativas, enlaces y notas del presentador.
+- Q_Nino_Pitch_Final_4min.pdf: seis páginas listas para proyectar o compartir.
+- Q_Nino_Pitch_Final_4min.html: abrir con el navegador, sin servidor ni conexión. Flechas o espacio para avanzar, N para notas, F para pantalla completa. Los enlaces de fuentes y demo sí requieren internet.
+- NOTAS_PRESENTADOR.txt: locución, tiempos y transiciones por diapositiva.
+- Vista_previa_Q_Nino.png: vista general de las seis diapositivas.
+
+SECUENCIA
+1. Sebastian, 0:00–0:30: problema y dato SENAMHI.
+2. Jefry, 0:30–1:10: modelo de asignación cuadrática.
+3. Luis, 1:10–1:55: Grover adaptativo con Qiskit.
+4. Luis, 1:55–2:20: demo N=4 y resultado 202.
+5. Jefry, 2:20–3:00: resultados registrados y escalabilidad.
+6. Fabricio, 3:00–3:30: aporte y oportunidades. Sebastian, 3:30–3:45: cierre.
+Margen: 15 segundos. Son tiempos objetivo, pendientes de ensayo con el equipo.
+
+PENDIENTE ANTES DE CERRAR EL PITCH
+La diapositiva 5 identifica que faltan los resultados N=10 / N>=14. Reemplazar esa franja con las mediciones reales del equipo y ajustar su bloque del guion. No se han inventado resultados de escalabilidad.
+Preparar el simulador en N=4 antes de empezar. Si falla la conexión, la diapositiva 4 contiene una asignación registrada de coste 202 que sirve de respaldo.
+
+EVIDENCIA
+El dato de 1.857,7 mm corresponde a la estación Miraflores, Piura, en 1998: suma propia de 365 registros de SENAMHI sin faltantes. Es contexto climático histórico. Las matrices del experimento siguen siendo sintéticas.
+La tabla N=3–6 usa los resultados guardados en datos.js del repositorio, revisión 8d407b4b366627c1d9a8eb9fdbfc8ec4f2b80c2c.
+La oportunidad de menos consultas es teórica para búsqueda sin estructura. No se presenta una ventaja medida de tiempo en QPU ni ahorro operativo demostrado.
+Fuentes completas: https://github.com/GatitoFBI/IBM-QUAMTUM-HACKATON-PROTOTIPO/tree/main/docs/final
+
+VERIFICACIÓN
+Se revisaron visualmente las seis diapositivas del PPTX con el renderizador Quick Look de macOS. El PDF tiene seis páginas. La versión HTML no realizó peticiones externas durante la prueba; su navegación y notas funcionan. El coste 202 y el aporte de 45 mostrado en la diapositiva 2 se recalcularon desde F y D.
