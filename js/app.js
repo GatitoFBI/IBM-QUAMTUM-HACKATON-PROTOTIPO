@@ -32,9 +32,9 @@ function setMotion(on) {
   document.documentElement.classList.toggle("motion", on);
   $("motion").setAttribute("aria-pressed", on); $("motion").textContent = on ? "Animaciones: sí" : "Animaciones: no";
 }
-setMotion(motionPref !== "off");
+setMotion(motionPref !== "off" && !matchMedia("(prefers-reduced-motion: reduce)").matches);
 $("motion").onclick = () => { const on = !document.documentElement.classList.contains("motion"); setMotion(on); try { localStorage.setItem("qnino_motion", on ? "on" : "off"); } catch {} toast(on ? "Animaciones activadas" : "Animaciones desactivadas"); };
-const reduced = () => !document.documentElement.classList.contains("motion");
+const reduced = () => !document.documentElement.classList.contains("motion") || matchMedia("(prefers-reduced-motion: reduce)").matches;
 // Contador para los KPIs y orden de entrada (--i) para listas y tarjetas
 function countUp(el) {
   const target = parseFloat(el.textContent), dec = (el.textContent.split(".")[1] || "").length;
@@ -91,6 +91,7 @@ function renderEditor(opts = {}) {
     `<tr><th title="${esc(labels[i])}" data-row="${i}">${esc(labels[i])}</th>${row.map((v, k) => i === k ? `<td><span class="dg">—</span></td>` :
       `<td><button type="button" class="cell ${i >= from || k >= from ? "grow" : ""} ${opts.shuffle ? "shuf" : ""}" style="--i:${opts.shuffle ? i * n + k : i + k}" data-m="${key}" data-i="${i}" data-k="${k}" aria-label="${key}: ${esc(labels[i])} con ${esc(labels[k])}">${v}</button></td>`).join("")}</tr>`).join("");
   $("matF").innerHTML = mat("F", cur.brigadas); $("matD").innerHTML = mat("D", cur.zonas);
+  [$("matF"), $("matD")].forEach(table => table.style.setProperty("--matrix-n", n));
   heat("F"); heat("D"); paintSel("F"); paintSel("D");
 }
 // Mapa de calor: --h (0–1) según el valor relativo al máximo de la matriz
@@ -418,19 +419,19 @@ function updStats(run, s) {
   const p = s >= 0 ? run.pasos[s] : null, q = p ? p.llamadas : 0;
   $("sQ").textContent = q; $("sB").textContent = p ? (p.mejora ? p.costo_salida : p.umbral) : run.pasos[0].umbral; $("sP").textContent = p ? (p.p_marcados * 100).toFixed(0) + " %" : "—";
   $("budBar").style.width = Math.min(100, q / R.presupuesto * 100) + "%"; $("budNF").hidden = R.M > R.presupuesto; $("budNF").style.left = Math.min(100, R.M / R.presupuesto * 100) + "%";
-  $("budTxt").textContent = `${q} de ${R.presupuesto} consultas del presupuesto · marca rosa = N! = ${R.M} (lo que revisa la fuerza bruta)${s === run.pasos.length - 1 ? ` · terminó con costo ${run.costo}${run.optimo ? " (óptimo ✓)" : ""}` : ""}`;
+  $("budTxt").textContent = `${q} de ${R.presupuesto} consultas del presupuesto · marca vertical = N! = ${R.M} (lo que revisa la fuerza bruta)${s === run.pasos.length - 1 ? ` · terminó con costo ${run.costo}${run.optimo ? " (óptimo ✓)" : ""}` : ""}`;
 }
 function next() { if (fi < frames.length - 1) { fi++; renderFrame(); return true; } stop(); return false; }
 function prev() { stop(); if (fi >= 0) { fi--; renderFrame(); } }
-function play() { if (timer) return stop(); if (fi >= frames.length - 1) fi = -1; $("play").textContent = "⏸"; $("play").classList.add("on"); $("ampCta").hidden = true; tick(); }
+function play() { if (timer) return stop(); if (fi >= frames.length - 1) fi = -1; $("play").innerHTML = '<svg class="control-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14"/></svg>'; $("play").classList.add("on"); $("ampCta").hidden = true; tick(); }
 function tick() { if (!next()) return; const f = frames[fi]; timer = setTimeout(tick, (f.k === "m" ? 1100 : 800) / spd * (R.runs[runIdx].pasos[0].etapas ? 1 : .3)); }
-function stop() { clearTimeout(timer); timer = null; $("play").textContent = "▶"; $("play").classList.remove("on"); }
+function stop() { clearTimeout(timer); timer = null; $("play").innerHTML = '<svg class="control-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 5 11 7-11 7Z"/></svg>'; $("play").classList.remove("on"); }
 $("play").onclick = play; $("ampCta").onclick = play; $("stepB").onclick = () => { stop(); next(); }; $("prevB").onclick = prev; $("restart").onclick = buildFrames;
 $("run").onchange = e => { runIdx = +e.target.value; buildFrames(); };
 $("scrub").oninput = e => { stop(); fi = +e.target.value - 1; renderFrame(); };
 // Atajos: espacio reproduce o pausa; ← y → retroceden o avanzan un paso
 document.addEventListener("keydown", e => {
-  if ($("v-animacion").hidden || /SELECT|INPUT|TEXTAREA/.test(e.target.tagName)) return;
+  if ($("v-animacion").hidden || /SELECT|INPUT|TEXTAREA/.test(e.target.tagName) || e.target.closest(".chart-scroll")) return;
   if (e.key === " ") { e.preventDefault(); play(); } else if (e.key === "ArrowRight") { stop(); next(); } else if (e.key === "ArrowLeft") prev();
 });
 
@@ -632,23 +633,31 @@ $("foot").innerHTML = `<b>Q-Niño</b> · Equipo <b>Quantum Action</b>: Jefry Roj
 
 /* ---------------- Navegación, motor y tema ---------------- */
 function seg(id, opts, curv, cb) { const el = $(id); el.innerHTML = opts.map(n => `<button type="button" data-v="${n}" aria-pressed="${n === curv}">${n}</button>`).join(""); el.onclick = e => { const b = e.target.closest("button"); if (b) cb(+b.dataset.v); }; }
-function show(v) { if (!document.getElementById("v-" + v)) v = "simulador"; document.querySelectorAll("#menu button").forEach(b => b.setAttribute("aria-selected", b.dataset.v === v)); document.querySelectorAll("section.view").forEach(s => s.hidden = s.id !== "v-" + v); stagger(`#v-${v} .card`, null); if (v === "comparador") renderCompare(); if (v === "simulador" && LM) setTimeout(() => { LM.invalidateSize(); drawMapReal.key = null; drawMap(); }, 60); if (v !== "animacion") stop(); try { history.replaceState(null, "", "#" + v); } catch {} window.scrollTo({ top: 0 }); }
+function show(v) { if (!document.getElementById("v-" + v)) v = "simulador"; document.querySelectorAll("#menu button").forEach(b => { b.setAttribute("aria-selected", b.dataset.v === v); b.tabIndex = b.dataset.v === v ? 0 : -1; }); document.querySelectorAll("section.view").forEach(s => s.hidden = s.id !== "v-" + v); stagger(`#v-${v} .card`, null); if (v === "comparador") renderCompare(); if (v === "simulador" && LM) setTimeout(() => { LM.invalidateSize(); drawMapReal.key = null; drawMap(); }, 60); if (v !== "animacion") stop(); try { history.replaceState(null, "", "#" + v); } catch {} window.scrollTo({ top: 0 }); }
+$("menu").addEventListener("keydown", e => {
+  const tabs = [...$("menu").querySelectorAll("button")], at = tabs.indexOf(document.activeElement);
+  if (at < 0 || !["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)) return;
+  e.preventDefault(); e.stopPropagation(); const next = e.key === "Home" ? 0 : e.key === "End" ? tabs.length - 1 : (at + (e.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length;
+  show(tabs[next].dataset.v); tabs[next].focus();
+});
+window.addEventListener("hashchange", () => show(location.hash.slice(1)));
 $("menu").onclick = e => { const b = e.target.closest("button"); if (b) show(b.dataset.v); };
 function updEngine() { const el = $("engine"); el.classList.toggle("live", useBackend);
   $("engineTxt").textContent = useBackend ? `Qiskit ${backend.qiskit} en vivo · servidor local` : backend ? "Navegador (clic para usar Qiskit en vivo)" : Q ? `Navegador · referencia Qiskit ${Q.qiskit}` : "Navegador"; }
 $("engine").onclick = () => { if (!backend) return toast("Para Qiskit en vivo: ejecuta python api.py y abre http://127.0.0.1:8000"); useBackend = !useBackend; updEngine(); };
-/* Temas: el de Qiskit Fall Fest (automático) queda por defecto; la elección se recuerda */
+/* Cobalt por defecto; las opciones y preferencias existentes se conservan. */
 const TEMAS = [
-  ["fallfest", "Qiskit Fall Fest", "automático: claro u oscuro según el sistema", null, null, ["#31125F", "#FF7EB5", "#D4BCFF"]],
-  ["fallfest-claro", "Qiskit Fall Fest · claro", "siempre claro", null, "light", ["#31125F", "#FF7EB5", "#FCE6F3"]],
-  ["fallfest-oscuro", "Qiskit Fall Fest · oscuro", "siempre oscuro", null, "dark", ["#C4A5FF", "#FF7EB5", "#170A22"]],
-  ["andino", "Andino", "cochinilla, ocre y verde", "andino", "light", ["#8E1B3A", "#E9A23B", "#2F7D5B"]],
-  ["atardecer", "Atardecer", "terracota, rosa y ámbar", "atardecer", "light", ["#9A3412", "#DB2777", "#F59E0B"]],
-  ["lavanda", "Lavanda", "violeta y rosa suave", "lavanda", "light", ["#6D28D9", "#A855F7", "#EC4899"]],
-  ["menta", "Menta", "verde agua y rosa", "menta", "light", ["#0F766E", "#059669", "#F472B6"]],
-  ["noche", "Noche cuántica", "oscuro con violeta neón", "noche", "dark", ["#C084FC", "#F0ABFC", "#0B0614"]],
-  ["contraste", "Alto contraste", "negro, amarillo y blanco", "contraste", "dark", ["#FFD60A", "#FF4D8D", "#000000"]]];
-let temaActual = (() => { try { return localStorage.getItem("qnino_tema") || "fallfest"; } catch { return "fallfest"; } })();
+  ["cobalt", "Cobalt", "papel frío, azul y grafito", "cobalt", "light", ["var(--swatch-cobalt-1)", "var(--swatch-cobalt-2)", "var(--swatch-cobalt-3)"]],
+  ["fallfest", "Qiskit Fall Fest", "automático: claro u oscuro según el sistema", null, null, ["var(--swatch-fallfest-1)", "var(--swatch-fallfest-2)", "var(--swatch-fallfest-3)"]],
+  ["fallfest-claro", "Qiskit Fall Fest · claro", "siempre claro", null, "light", ["var(--swatch-fallfest-claro-1)", "var(--swatch-fallfest-claro-2)", "var(--swatch-fallfest-claro-3)"]],
+  ["fallfest-oscuro", "Qiskit Fall Fest · oscuro", "siempre oscuro", null, "dark", ["var(--swatch-fallfest-oscuro-1)", "var(--swatch-fallfest-oscuro-2)", "var(--swatch-fallfest-oscuro-3)"]],
+  ["andino", "Andino", "cochinilla, ocre y verde", "andino", "light", ["var(--swatch-andino-1)", "var(--swatch-andino-2)", "var(--swatch-andino-3)"]],
+  ["atardecer", "Atardecer", "terracota, rosa y ámbar", "atardecer", "light", ["var(--swatch-atardecer-1)", "var(--swatch-atardecer-2)", "var(--swatch-atardecer-3)"]],
+  ["lavanda", "Lavanda", "violeta y rosa suave", "lavanda", "light", ["var(--swatch-lavanda-1)", "var(--swatch-lavanda-2)", "var(--swatch-lavanda-3)"]],
+  ["menta", "Menta", "verde agua y rosa", "menta", "light", ["var(--swatch-menta-1)", "var(--swatch-menta-2)", "var(--swatch-menta-3)"]],
+  ["noche", "Noche cuántica", "oscuro con violeta neón", "noche", "dark", ["var(--swatch-noche-1)", "var(--swatch-noche-2)", "var(--swatch-noche-3)"]],
+  ["contraste", "Alto contraste", "negro, amarillo y blanco", "contraste", "dark", ["var(--swatch-contraste-1)", "var(--swatch-contraste-2)", "var(--swatch-contraste-3)"]]];
+let temaActual = (() => { try { return localStorage.getItem("qnino_tema") || "cobalt"; } catch { return "cobalt"; } })();
 function aplicarTema(id, animar) {
   const t = TEMAS.find(x => x[0] === id) || TEMAS[0], r = document.documentElement;
   if (animar) { document.body.classList.add("retheme"); setTimeout(() => document.body.classList.remove("retheme"), 600); }
