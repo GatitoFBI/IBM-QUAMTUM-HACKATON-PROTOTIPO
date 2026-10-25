@@ -89,12 +89,14 @@
     </div>
   </div>
 
-  <div class="card" id="results" hidden>
+  <div class="card results" id="results" hidden>
     <div class="row between"><h3>Resultado</h3><span class="badge q" id="resEngine"></span></div>
-    <div class="kpis" id="kpis"></div>
+    <div class="rverdict" id="rVerdict"></div>
+    <div class="tiles" id="kpis"></div>
     <div class="g2e">
-      <div><h3>Mejor asignación encontrada por Grover</h3><div class="assign" id="assign"></div></div>
-      <div><h3>Pasos de la solución</h3><ol class="steps" id="steps"></ol></div>
+      <div class="rcol"><h3>Mejor asignación encontrada por Grover</h3><div class="rassign" id="assign"></div>
+        <h3>Qué pares pesan más en el costo</h3><div class="rpairs" id="rPairs"></div></div>
+      <div class="rcol"><h3>Pasos de la solución</h3><ol class="steps timeline" id="steps"></ol></div>
     </div>
     <div class="row"><button class="btn main" type="button" data-go="animacion">Ver la animación de esta ejecución →</button><button class="btn" type="button" data-go="comparador">Comparar con N! →</button></div>
   </div>

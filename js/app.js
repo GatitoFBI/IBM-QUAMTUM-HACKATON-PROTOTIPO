@@ -208,20 +208,52 @@ const bestRun = () => R.runs.find(r => r.optimo) || R.runs.reduce((a, b) => b.co
 
 function renderResults() {
   $("results").hidden = false;
-  const q = R.runs.map(r => r.consultas), ok = R.runs.filter(r => r.optimo).length, b = bestRun(), p = R.perms[b.indice];
+  const q = R.runs.map(r => r.consultas), ok = R.runs.filter(r => r.optimo).length, nr = R.runs.length, b = bestRun(), p = R.perms[b.indice];
+  const qm = mean(q), gap = R.optimo ? (b.costo / R.optimo - 1) * 100 : 0, anim = !stale;
   $("resEngine").textContent = stale ? "Desactualizado: vuelve a resolver" : motorTxt(R.motor);
-  $("kpis").innerHTML = [[R.optimo, `óptimo exacto (fuerza bruta, ${R.M} evaluaciones)`, ""], [b.costo, `mejor costo de Grover · ${ok}/${R.runs.length} aciertos`, "o"], [`${mean(q).toFixed(0)}`, `consultas medias (± ${sd(q).toFixed(0)}) · presupuesto ${R.presupuesto}`, ""], [`${R.qubits}`, `qubits (one-hot necesitaría ${R.n * R.n})`, "o"]]
-    .map(k => `<div class="kpi ${k[2]}"><b>${k[0]}</b><span>${k[1]}</span></div>`).join("");
-  $("assign").innerHTML = p.map((z, i) => `<div><span>${esc(R.brigadas[i])}</span><span>→</span><b>${esc(R.zonas[z])}</b></div>`).join("");
+
+  // Veredicto con un check que se dibuja
+  const good = b.optimo;
+  $("rVerdict").className = "rverdict " + (good ? "good" : "warn");
+  $("rVerdict").innerHTML = `<svg class="vcheck" viewBox="0 0 52 52" aria-hidden="true"><circle cx="26" cy="26" r="23"/>${good ? `<path d="M15 27l7 7 15-16"/>` : `<path d="M26 14v16M26 37v1"/>`}</svg>
+    <div><b>${good ? "Grover encontró la asignación óptima" : "Grover no llegó al óptimo en esta ejecución"}</b>
+    <span>Costo ${b.costo}${good ? ` = mínimo exacto` : ` frente a ${R.optimo} del exacto (${gap.toFixed(1)} % más)`} · ${ok} de ${nr} ejecuciones acertaron · ${R.n}! = ${R.M} asignaciones posibles</span></div>`;
+
+  // Tarjetas con mini gráficos
+  const bar = (label, v, max, cls = "") => `<div class="mbar ${cls}"><span>${label}</span><i style="--w:${Math.max(3, Math.min(100, v / max * 100)).toFixed(1)}%"></i><b>${Number(v).toLocaleString("es", { maximumFractionDigits: 1 })}</b></div>`;
+  const C = 2 * Math.PI * 26, mq = Math.max(qm, R.presupuesto, R.M);
+  $("kpis").innerHTML = `
+    <div class="tile"><span class="tl">Costo óptimo</span><b class="big cnt">${R.optimo}</b>
+      ${bar("Grover", b.costo, Math.max(b.costo, R.optimo), "q")}${bar("Exacto", R.optimo, Math.max(b.costo, R.optimo))}<span class="ts">brecha ${gap.toFixed(1)} %</span></div>
+    <div class="tile"><span class="tl">Aciertos</span><div class="donut"><svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="26" class="trk"/><circle cx="32" cy="32" r="26" class="val" style="--c:${C.toFixed(1)};--o:${(C * (1 - ok / nr)).toFixed(1)}"/></svg><b><span class="cnt">${ok}</span>/${nr}</b></div>
+      <span class="ts">ejecuciones que hallaron el óptimo</span></div>
+    <div class="tile"><span class="tl">Consultas al oráculo</span><b class="big cnt">${qm.toFixed(0)}</b>
+      ${bar("Grover", Math.round(qm), mq, "q")}${bar("Presupuesto", R.presupuesto, mq, "p")}${bar("N!", R.M, mq)}<span class="ts">± ${sd(q).toFixed(0)} entre ejecuciones</span></div>
+    <div class="tile"><span class="tl">Qubits</span><b class="big cnt">${R.qubits}</b>
+      ${bar("Índice", R.qubits, R.n * R.n, "q")}${bar("One-hot", R.n * R.n, R.n * R.n)}<span class="ts">${R.n * R.n - R.qubits} qubits menos que el QUBO</span></div>`;
+
+  // Asignación con avatares y pines
+  $("assign").innerHTML = p.map((z, i) => `<div class="ra" style="--i:${i}"><span class="av" style="--c:var(${PAL[i]});--t:var(${PAL[i] === "--otono" ? "--on-otono" : "--on-qiskit"})">${esc(R.brigadas[i][0])}</span><span class="rb">${esc(R.brigadas[i])}</span><span class="rarr" aria-hidden="true"></span><span class="pin">${PIN}</span><b>${esc(R.zonas[z])}</b></div>`).join("");
+
+  // Pares que más aportan: F × D de cada par en la asignación encontrada
+  const pairs = []; for (let i = 0; i < R.n; i++) for (let k = i + 1; k < R.n; k++) pairs.push({ i, k, f: R.F[i][k], d: R.D[p[i]][p[k]], c: R.F[i][k] * R.D[p[i]][p[k]] });
+  pairs.sort((x, y) => y.c - x.c); const top = pairs.slice(0, 3), mx = top[0]?.c || 1;
+  $("rPairs").innerHTML = top.map((x, n) => `<div class="rp" style="--i:${n}"><div class="rpt"><span>${esc(R.brigadas[x.i])} · ${esc(R.brigadas[x.k])}</span><b>${x.c}</b></div>
+    <div class="rpb"><i style="--w:${(x.c / mx * 100).toFixed(1)}%"></i></div><span class="ts">F ${x.f} × D ${x.d} h · ${(x.c / b.costo * 100).toFixed(0)} % del costo total</span></div>`).join("");
+
   const mejoras = b.pasos.filter(s => s.mejora).map(s => s.costo_salida);
   $("steps").innerHTML = [
     `<b>Espacio de búsqueda.</b> ${R.n}! = ${R.M} asignaciones válidas, codificadas en ⌈log₂ ${R.M}⌉ = ${R.qubits} qubits (${2 ** R.qubits} índices; ${2 ** R.qubits - R.M} sobrantes se descartan).`,
     `<b>Fuerza bruta.</b> Evalúa las ${R.M} asignaciones y encuentra C* = ${R.optimo} en ${(R.clasico_s * 1000).toFixed(2)} ms.`,
     `<b>Presupuesto de Grover.</b><div class="formula">22,5·√${R.M} + 1,4·log₂²(${R.M}) = ${R.presupuesto} consultas</div>`,
-    `<b>Búsqueda adaptativa.</b> Empieza con umbral ${b.pasos[0].umbral} y mejora ${mejoras.length} veces: ${[b.pasos[0].umbral, ...mejoras].join(" → ")}. Usa ${b.consultas} consultas en ${b.pasos.length} mediciones.`,
+    `<b>Búsqueda adaptativa.</b> Empieza con umbral ${b.pasos[0].umbral} y mejora ${mejoras.length} ${mejoras.length === 1 ? "vez" : "veces"}: <span class="chain">${[b.pasos[0].umbral, ...mejoras].map(v => `<i>${v}</i>`).join("→")}</span> Usa ${b.consultas} consultas en ${b.pasos.length} mediciones.`,
     `<b>Resultado.</b> Costo ${b.costo} ${b.optimo ? `<span class="ok">= óptimo ✓</span>` : `<span class="bad">≠ óptimo</span>`}. ${b.consultas < R.M ? `Usó menos consultas que N! (${R.M}).` : `Para N = ${R.n} usó más consultas que N! (${R.M}): la ventaja empieza desde N ≈ 7.`}`
   ].map(s => `<li><span>${s}</span></li>`).join("");
-  if (!stale) { stagger("#kpis .kpi"); stagger("#steps li"); stagger("#assign div"); document.querySelectorAll("#kpis .kpi b").forEach(countUp); }
+
+  if (anim) {
+    const r = $("results"); r.classList.remove("play"); void r.offsetWidth; r.classList.add("play");
+    stagger("#kpis .tile", null); stagger("#steps li"); document.querySelectorAll("#kpis .cnt").forEach(countUp);
+  }
 }
 
 /* ---------------- Mapa ---------------- */
