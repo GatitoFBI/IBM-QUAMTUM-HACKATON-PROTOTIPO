@@ -195,15 +195,18 @@ nav.menu button[aria-selected="true"]::after{transform:scaleX(1)}
 .card{transition:box-shadow .25s,transform .25s,border-color .25s}
 
 /* Logo: la ruta se dibuja, los nodos aparecen y el qubit orbita */
-html.motion .logo .ruta{stroke-dasharray:760;stroke-dashoffset:760;animation:draw 1.4s .15s cubic-bezier(.6,0,.3,1) forwards}
-html.motion .logo .nodo,html.motion .logo .nucleo{transform-box:fill-box;transform-origin:center;animation:pop .45s cubic-bezier(.3,1.6,.5,1) backwards}
-html.motion .logo .nodo:nth-of-type(1){animation-delay:.25s}html.motion .logo .nodo:nth-of-type(2){animation-delay:.5s}
-html.motion .logo .nodo:nth-of-type(3){animation-delay:.75s}html.motion .logo .nodo:nth-of-type(4){animation-delay:1.25s}
-html.motion .logo .nucleo{animation:pop .45s 1s cubic-bezier(.3,1.6,.5,1) backwards,glow 2.6s 1.6s ease-in-out infinite}
+html.motion .logo .ruta{stroke-dasharray:760;animation:rutaLoop 5s cubic-bezier(.6,0,.3,1) infinite}
+html.motion .logo .nodo,html.motion .logo .nucleo{transform-box:fill-box;transform-origin:center;animation:nodoLoop 5s ease-out infinite backwards}
+html.motion .logo .nodo:nth-of-type(1){animation-delay:.1s}html.motion .logo .nodo:nth-of-type(2){animation-delay:.45s}
+html.motion .logo .nodo:nth-of-type(3){animation-delay:.7s}html.motion .logo .nodo:nth-of-type(4){animation-delay:1.45s}
+html.motion .logo .nucleo{animation:nodoLoop 5s 1s ease-out infinite backwards}
 html.motion .logo .orbita{transform-box:fill-box;transform-origin:center;animation:spin 7s linear infinite}
-html.motion .logo .base{stroke-dasharray:372;stroke-dashoffset:372;animation:draw 1s 1.2s ease-out forwards}
+html.motion .logo .base{stroke-dasharray:372;animation:baseLoop 5s ease-out infinite}
 html.motion .brand:hover .logo{animation:float 1.6s ease-in-out infinite}
 @keyframes draw{to{stroke-dashoffset:0}}
+@keyframes rutaLoop{0%{stroke-dashoffset:760}35%,78%{stroke-dashoffset:0}100%{stroke-dashoffset:-760}}
+@keyframes baseLoop{0%,20%{stroke-dashoffset:372}45%,80%{stroke-dashoffset:0}100%{stroke-dashoffset:-372}}
+@keyframes nodoLoop{0%{transform:scale(0)}7%{transform:scale(1.3)}11%,76%{transform:scale(1)}90%,100%{transform:scale(0)}}
 @keyframes pop{from{transform:scale(0)}}
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes glow{50%{opacity:.75}}
