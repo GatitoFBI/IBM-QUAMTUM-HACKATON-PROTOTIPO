@@ -450,17 +450,17 @@ html.motion .tile:hover,html.motion .ra:hover,html.motion .rp:hover{transform:tr
    Degradado lavanda → lila → rosa con manchas suaves y nubes, como el arte del evento. */
 :root{
   --sky-0:#E2E9FF; --sky-1:#EEE5FF; --sky-2:#FDE7F2;
-  --sky-a:#FFC9E1; --sky-b:#D5C2FF; --sky-c:#C3D4FF; --cloud:#FFFFFF; --cloud-o:.75;
+  --sky-a:#FFC9E1; --sky-b:#D5C2FF; --sky-c:#C3D4FF; --cloud:#FFFFFF; --cloud-o:.8; --wash-o:.45;
   --glass:color-mix(in srgb,var(--surface) 80%,transparent);
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --sky-0:#100A22; --sky-1:#1A0F38; --sky-2:#24102E;
-  --sky-a:#5A1E4C; --sky-b:#3B1F72; --sky-c:#1C2B6E; --cloud:#8F7CFF; --cloud-o:.10;
+  --sky-a:#5A1E4C; --sky-b:#3B1F72; --sky-c:#1C2B6E; --cloud:#B9A6FF; --cloud-o:.16; --wash-o:.55;
   --glass:color-mix(in srgb,var(--surface) 78%,transparent);
 }}
 :root[data-theme="dark"]{
   --sky-0:#100A22; --sky-1:#1A0F38; --sky-2:#24102E;
-  --sky-a:#5A1E4C; --sky-b:#3B1F72; --sky-c:#1C2B6E; --cloud:#8F7CFF; --cloud-o:.10;
+  --sky-a:#5A1E4C; --sky-b:#3B1F72; --sky-c:#1C2B6E; --cloud:#B9A6FF; --cloud-o:.16; --wash-o:.55;
   --glass:color-mix(in srgb,var(--surface) 78%,transparent);
 }
 body{background:linear-gradient(160deg,var(--sky-0) 0%,var(--sky-1) 45%,var(--sky-2) 100%) fixed}
@@ -471,22 +471,31 @@ body{background:linear-gradient(160deg,var(--sky-0) 0%,var(--sky-1) 45%,var(--sk
     radial-gradient(50% 45% at 85% 92%,var(--sky-c) 0,transparent 70%),
     radial-gradient(40% 35% at 6% 88%,var(--sky-b) 0,transparent 70%);
   background-size:130% 130%;background-position:0 0}
-/* Nubes: tres círculos superpuestos, como las del arte oficial */
-.sky i{position:absolute;display:block;width:340px;height:120px;border-radius:120px;background:var(--cloud);opacity:var(--cloud-o);filter:blur(2px)}
+/* Degradado de color que se desplaza (rosa → lila → azul → rosa) */
+.sky::before{content:"";position:absolute;inset:0;opacity:var(--wash-o);
+  background:linear-gradient(120deg,var(--sky-a),var(--sky-b),var(--sky-c),var(--sky-a),var(--sky-b));background-size:300% 300%}
+/* Nubes: tres círculos superpuestos, como las del arte oficial; cruzan la pantalla de izquierda a derecha */
+.sky i{position:absolute;left:0;display:block;width:340px;height:120px;border-radius:120px;background:var(--cloud);opacity:var(--cloud-o);filter:blur(1px);transform:translateX(var(--x0,10vw)) scale(var(--s,1))}
 .sky i::before,.sky i::after{content:"";position:absolute;border-radius:50%;background:var(--cloud)}
 .sky i::before{width:150px;height:150px;left:50px;top:-70px}
 .sky i::after{width:190px;height:190px;left:140px;top:-110px}
-.sky .c1{left:-60px;top:34%}
-.sky .c2{right:-80px;top:62%;transform:scale(1.2)}
-.sky .c3{left:38%;top:92%;transform:scale(.9)}
+.sky .c1{top:22%;--s:1;--x0:5vw}
+.sky .c2{top:58%;--s:1.25;--x0:60vw}
+.sky .c3{top:88%;--s:.85;--x0:30vw}
+.sky .c4{top:40%;--s:.6;--x0:80vw}
+.sky .c5{top:74%;--s:.7;--x0:-10vw}
 /* Tarjetas y menú translúcidos para que se vea el fondo */
 .card,nav.menu,.tile,.matbox,.rp,.ra{backdrop-filter:blur(10px)}
 .card{background:var(--glass)}
 nav.menu{background:color-mix(in srgb,var(--surface) 72%,transparent)}
 footer{background:color-mix(in srgb,var(--surface) 55%,transparent)}
 html.motion .sky{animation:skyShift 28s ease-in-out infinite alternate}
-html.motion .sky .c1{animation:cloud 60s linear infinite}
-html.motion .sky .c2{animation:cloud 80s linear infinite reverse}
-html.motion .sky .c3{animation:cloud 95s linear infinite}
-@keyframes skyShift{to{background-position:6% 4%,-5% 6%,4% -6%,-4% -3%}}
-@keyframes cloud{0%{translate:0 0}50%{translate:120px -14px}100%{translate:0 0}}
+html.motion .sky::before{animation:wash 16s ease-in-out infinite alternate}
+html.motion .sky i{animation:drift var(--t,60s) linear infinite;animation-delay:var(--d,0s)}
+html.motion .sky .c1{--t:48s;--d:-10s}
+html.motion .sky .c2{--t:70s;--d:-40s}
+html.motion .sky .c3{--t:58s;--d:-25s}
+html.motion .sky .c4{--t:38s;--d:-5s}
+html.motion .sky .c5{--t:64s;--d:-50s}
+@keyframes drift{0%{transform:translate(-420px,0) scale(var(--s,1))}50%{transform:translate(50vw,-18px) scale(var(--s,1))}100%{transform:translate(calc(100vw + 60px),0) scale(var(--s,1))}}
+@keyframes wash{0%{background-position:0% 50%}100%{background-position:100% 50%}}
