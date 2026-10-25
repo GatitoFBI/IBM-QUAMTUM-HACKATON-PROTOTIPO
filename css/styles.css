@@ -618,3 +618,15 @@ html.motion .rr:hover{transform:translateY(-2px);box-shadow:0 6px 16px color-mix
 html.motion .tmenu:not([hidden]){animation:menuIn .22s cubic-bezier(.2,.7,.2,1)}
 html.motion body.retheme *{transition:background-color .45s,color .45s,border-color .45s,fill .45s,stroke .45s!important}
 @keyframes menuIn{from{opacity:0;transform:translateY(-6px) scale(.98)}}
+
+/* Cabecera: título a la izquierda y controles a la derecha en la misma fila */
+header.top .wrap{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:12px 24px;padding-block:14px}
+header.top .brand{min-width:0}
+header.top .brand h1{font-size:clamp(1.3rem,2.4vw,1.9rem);white-space:nowrap}
+header.top .sub{font-size:.74rem;line-height:1.5;margin-top:3px}
+header.top .wrap>.row{flex-wrap:nowrap;justify-content:flex-end;gap:8px}
+@media (max-width:980px){
+  header.top .wrap{grid-template-columns:1fr}
+  header.top .wrap>.row{justify-content:flex-start;flex-wrap:wrap}
+  header.top .brand h1{white-space:normal}
+}
