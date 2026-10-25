@@ -63,42 +63,72 @@ function resize(n) {
   cur.F = grow(cur.F, base.F, 5); cur.D = grow(cur.D, base.D, 10);
   renderEditor({ count: true }); onChange();
 }
+const esc = s => String(s).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
 const PAL = ["--qiskit", "--otono", "--qiskit-2", "--ok", "--qiskit", "--otono"];
 const PIN = `<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z" fill="currentColor"/></svg>`;
-let lastN = null;
-// opts.count: animar los contadores · opts.shuffle: cascada en todas las celdas (datos aleatorios)
+// Opciones para elegir: el usuario no escribe nada
+const BRIG_OPC = [...BRIG, "Bomberos", "Defensa Civil", "Ingeniería", "Psicología", "Policía"];
+const ZON_OPC = [...ZON, "Sullana", "Talara", "Chiclayo", "Chimbote", "Lima"];
+Z.Sullana = [-4.90, -80.69];
+const RANGO = { F: { min: 0, max: 10, u: "", chips: [["Ninguna", 0], ["Baja", 2], ["Media", 5], ["Alta", 9]] },
+                D: { min: 1, max: 30, u: " h", chips: [["Cerca", 4], ["Media", 12], ["Lejos", 20]] } };
+let lastN = null, selCell = { F: [0, 1], D: [0, 1] };
+// opts.count: animar los contadores · opts.shuffle: cascada en todas las celdas
 function renderEditor(opts = {}) {
   const n = cur.F.length, M = G.fact(n), q = G.qubits(M), from = lastN && n > lastN ? lastN : n; lastN = n;
   $("dataTitle").textContent = `Datos del problema · ${n} brigadas y ${n} zonas`;
   $("dataChip").innerHTML = `<b class="cnt">${M}</b> asignaciones posibles (${n}!) · <b class="cnt">${q}</b> qubits con Grover (one-hot: ${n * n})`;
   if (opts.count) document.querySelectorAll("#dataChip .cnt").forEach(countUp);
   seg("nSel", [3, 4, 5, 6], n, resize); $("nSel").style.setProperty("--x", n - 3);
+  // cada lista deshabilita lo que ya eligió otra fila
+  const opt = (list, key, i) => { const used = new Set(cur[key].filter((_, j) => j !== i)), all = list.includes(cur[key][i]) ? list : [cur[key][i], ...list];
+    return all.map(o => `<option ${o === cur[key][i] ? "selected" : ""} ${used.has(o) ? "disabled" : ""}>${esc(o)}</option>`).join(""); };
   $("names").innerHTML = `<div class="pair head"><span></span><span>Brigada</span><span></span><span>Zona</span></div>` + [...Array(n)].map((_, i) =>
     `<div class="pair ${i >= from ? "grow" : ""}" style="--i:${i}"><span class="av" style="--c:var(${PAL[i]});--t:var(${PAL[i] === "--otono" ? "--on-otono" : "--on-qiskit"})">${esc((cur.brigadas[i] || "?")[0])}</span>` +
-    `<input type="text" maxlength="24" data-nm="brigadas" data-i="${i}" value="${esc(cur.brigadas[i])}" aria-label="Nombre de la brigada ${i + 1}">` +
-    `<span class="pin" title="Zona ${i + 1}">${PIN}</span><input type="text" maxlength="24" data-nm="zonas" data-i="${i}" value="${esc(cur.zonas[i])}" aria-label="Nombre de la zona ${i + 1}"></div>`).join("");
+    `<select data-nm="brigadas" data-i="${i}" aria-label="Brigada ${i + 1}">${opt(BRIG_OPC, "brigadas", i)}</select>` +
+    `<span class="pin" title="Zona ${i + 1}">${PIN}</span><select data-nm="zonas" data-i="${i}" aria-label="Zona ${i + 1}">${opt(ZON_OPC, "zonas", i)}</select></div>`).join("");
   const mat = (key, labels) => `<tr><th></th>${labels.map((l, k) => `<th title="${esc(l)}" data-col="${k}">${esc(l)}</th>`).join("")}</tr>` + cur[key].map((row, i) =>
-    `<tr><th title="${esc(labels[i])}" data-row="${i}">${esc(labels[i])}</th>${row.map((v, k) => {
-      const cls = [i >= from || k >= from ? "grow" : "", opts.shuffle && i !== k ? "shuf" : ""].join(" ");
-      return `<td><input type="number" min="0" max="999" step="1" class="${cls}" style="--i:${opts.shuffle ? i * n + k : i + k}" data-m="${key}" data-i="${i}" data-k="${k}" value="${i === k ? "" : v}" placeholder="${i === k ? "—" : ""}" ${i === k ? "disabled" : ""} aria-label="${key}[${labels[i]}][${labels[k]}]"></td>`; }).join("")}</tr>`).join("");
+    `<tr><th title="${esc(labels[i])}" data-row="${i}">${esc(labels[i])}</th>${row.map((v, k) => i === k ? `<td><span class="dg">—</span></td>` :
+      `<td><button type="button" class="cell ${i >= from || k >= from ? "grow" : ""} ${opts.shuffle ? "shuf" : ""}" style="--i:${opts.shuffle ? i * n + k : i + k}" data-m="${key}" data-i="${i}" data-k="${k}" aria-label="${key}: ${esc(labels[i])} con ${esc(labels[k])}">${v}</button></td>`).join("")}</tr>`).join("");
   $("matF").innerHTML = mat("F", cur.brigadas); $("matD").innerHTML = mat("D", cur.zonas);
-  heat("F"); heat("D");
+  heat("F"); heat("D"); paintSel("F"); paintSel("D");
 }
 // Mapa de calor: --h (0–1) según el valor relativo al máximo de la matriz
 function heat(key) {
   const mx = Math.max(1, ...cur[key].flat());
-  document.querySelectorAll(`[data-m="${key}"]`).forEach(el => { const i = +el.dataset.i, k = +el.dataset.k; el.style.setProperty("--h", i === k ? 0 : (cur[key][i][k] / mx).toFixed(2)); });
+  document.querySelectorAll(`.cell[data-m="${key}"]`).forEach(el => el.style.setProperty("--h", (cur[key][+el.dataset.i][+el.dataset.k] / mx).toFixed(2)));
 }
-// Al enfocar una celda: se resaltan su fila, su columna y su pareja simétrica
-document.addEventListener("focusin", e => {
-  document.querySelectorAll(".mat .hl, .mat .twin").forEach(x => x.classList.remove("hl", "twin"));
-  const t = e.target; if (!t.dataset?.m) return;
-  const tb = t.closest("table"), i = +t.dataset.i, k = +t.dataset.k;
-  tb.querySelector(`th[data-row="${i}"]`)?.classList.add("hl"); tb.querySelector(`th[data-col="${k}"]`)?.classList.add("hl");
-  tb.querySelector(`[data-i="${k}"][data-k="${i}"]`)?.classList.add("twin");
+// Celda elegida: se resaltan ella, su pareja simétrica, su fila y su columna, y debajo aparece su control
+function paintSel(key) {
+  const n = cur.F.length; let [i, k] = selCell[key]; if (i >= n || k >= n || i === k) { [i, k] = [0, 1]; selCell[key] = [i, k]; }
+  const L = key === "F" ? cur.brigadas : cur.zonas, r = RANGO[key], v = cur[key][i][k], tb = $(key === "F" ? "matF" : "matD");
+  tb.querySelectorAll(".cell").forEach(b => { const a = +b.dataset.i, c = +b.dataset.k; b.classList.toggle("sel", (a === i && c === k) || (a === k && c === i)); });
+  tb.querySelectorAll("th.hl").forEach(t => t.classList.remove("hl"));
+  [`th[data-row="${i}"]`, `th[data-col="${k}"]`, `th[data-row="${k}"]`, `th[data-col="${i}"]`].forEach(q => tb.querySelector(q)?.classList.add("hl"));
+  $("ce" + key).innerHTML = `<div class="cel"><span><b>${esc(L[i])}</b> ↔ <b>${esc(L[k])}</b></span><span class="cv" id="cv${key}">${v}${r.u}</span></div>
+    <input type="range" min="${r.min}" max="${r.max}" step="1" value="${v}" data-range="${key}" aria-label="${key} entre ${esc(L[i])} y ${esc(L[k])}">
+    <div class="chips">${r.chips.map(([t, x]) => `<button type="button" class="chipv ${x === v ? "on" : ""}" data-set="${key}" data-v="${x}">${t} · ${x}${r.u}</button>`).join("")}</div>`;
+}
+function setCell(key, v) {
+  const [i, k] = selCell[key]; if (cur[key][i][k] === v) return;
+  cur[key][i][k] = cur[key][k][i] = v;
+  $(key === "F" ? "matF" : "matD").querySelectorAll(".cell.sel").forEach(b => { b.textContent = v; b.classList.remove("bump"); void b.offsetWidth; b.classList.add("bump"); });
+  $("cv" + key).textContent = v + RANGO[key].u;
+  document.querySelectorAll(`[data-set="${key}"]`).forEach(c => c.classList.toggle("on", +c.dataset.v === v));
+  heat(key); onChange();
+}
+document.addEventListener("click", e => {
+  const c = e.target.closest(".cell"); if (c) { selCell[c.dataset.m] = [+c.dataset.i, +c.dataset.k]; paintSel(c.dataset.m); return; }
+  const s = e.target.closest("[data-set]"); if (s) { setCell(s.dataset.set, +s.dataset.v); const rg = document.querySelector(`[data-range="${s.dataset.set}"]`); if (rg) rg.value = s.dataset.v; }
 });
-const esc = s => String(s).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
-
+document.addEventListener("input", e => { if (e.target.dataset?.range) setCell(e.target.dataset.range, +e.target.value); });
+// D estimada desde el mapa: distancia en línea recta × 1,3 (rodeo de la carretera) a 60 km/h
+const haversine = ([a, b], [c, d]) => { const r = x => x * Math.PI / 180, h = Math.sin(r(c - a) / 2) ** 2 + Math.cos(r(a)) * Math.cos(r(c)) * Math.sin(r(d - b) / 2) ** 2; return 2 * 6371 * Math.asin(Math.sqrt(h)); };
+$("estD").onclick = () => {
+  const n = cur.F.length, P = cur.zonas.map((z, j) => zoneLatLng(z, j, n));
+  for (let i = 0; i < n; i++) for (let k = i + 1; k < n; k++) cur.D[i][k] = cur.D[k][i] = Math.min(30, Math.max(1, Math.round(haversine(P[i], P[k]) * 1.3 / 60)));
+  renderEditor({ shuffle: true }); onChange(); toast("Horas estimadas: distancia en línea recta × 1,3, a 60 km/h");
+};
 document.addEventListener("input", e => {
   const t = e.target;
   if (t.dataset.m) {

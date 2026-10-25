@@ -58,18 +58,18 @@
         <div class="names" id="names"></div></section>
 
       <section class="estep" aria-labelledby="st2"><h4 id="st2"><span class="snum">2</span>¿Cuánto se coordinan y qué tan lejos están?</h4>
-        <p class="muted small">Toca una celda para editarla: su pareja simétrica cambia sola. El color más intenso indica un valor más alto.</p>
+        <p class="muted small">Toca una celda y ajusta su valor con el deslizador o los atajos. Su pareja simétrica cambia sola y el color más intenso indica un valor más alto.</p>
         <div class="mats">
-          <div class="matbox"><div class="mt"><b>F</b> · sinergia entre brigadas</div><div class="scroll"><table class="mat heat-f" id="matF"></table></div><div class="scale f"><span>baja</span><i></i><span>alta</span></div></div>
-          <div class="matbox"><div class="mt"><b>D</b> · horas entre zonas</div><div class="scroll"><table class="mat heat-d" id="matD"></table></div><div class="scale d"><span>cerca</span><i></i><span>lejos</span></div></div>
+          <div class="matbox"><div class="mt"><b>F</b> · sinergia entre brigadas</div><div class="scroll"><table class="mat heat-f" id="matF"></table></div><div class="cedit" id="ceF"></div><div class="scale f"><span>baja</span><i></i><span>alta</span></div></div>
+          <div class="matbox"><div class="mt row between"><span><b>D</b> · horas entre zonas</span><button class="btn mini" id="estD" type="button">Estimar con el mapa</button></div><div class="scroll"><table class="mat heat-d" id="matD"></table></div><div class="cedit d" id="ceD"></div><div class="scale d"><span>cerca</span><i></i><span>lejos</span></div></div>
         </div>
         <p class="err" id="err" hidden></p></section>
 
       <section class="estep" aria-labelledby="st3"><h4 id="st3"><span class="snum">3</span>Resolver</h4>
         <div class="run">
           <button class="btn main big" id="solve" type="button">Resolver con Grover</button>
-          <label class="f">Semilla <input type="number" id="seed" value="42" min="0" max="99999"></label>
-          <label class="f">Repeticiones <input type="number" id="reps" value="10" min="1" max="20"></label>
+          <label class="f">Semilla <select id="seed"><option selected>42</option><option>7</option><option>123</option><option>2026</option></select></label>
+          <label class="f">Repeticiones <select id="reps"><option>1</option><option>3</option><option>5</option><option selected>10</option><option>20</option></select></label>
         </div>
         <div class="row tools">
           <button class="btn" id="randomize" type="button">Datos aleatorios</button>

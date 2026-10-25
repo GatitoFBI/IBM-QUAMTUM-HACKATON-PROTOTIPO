@@ -277,7 +277,7 @@ Qiskit 2.6.1, semilla 42, 10 ejecuciones por N y sin parada anticipada:
 
 | Sección | Qué permite |
 |---|---|
-| **Simulador** | Editar N (3–6), nombres, matrices F y D (simétricas), semilla y repeticiones. Cada cambio frente a los datos cargados se marca en rosa y se registra («F[Médica, Rescate]: 9 → 14»). Muestra el resultado, el mapa de la costa y los pasos de la solución |
+| **Simulador** | Sin escribir nada: elegir N (3–6), brigadas y zonas de listas, y ajustar cada celda de F y D con un deslizador o atajos (Baja, Media, Alta). D se puede estimar desde el mapa. Semilla y repeticiones también se eligen de listas. Cada cambio frente a los datos cargados se marca en rosa y se registra («F[Médica, Rescate]: 9 → 14»). Muestra el resultado, el mapa de la costa y los pasos de la solución |
 | **Grover paso a paso** | Anima cada etapa (superposición → oráculo → difusión → medición) con las amplitudes de cada índice, la línea del promedio y la evolución del umbral frente a las consultas |
 | **Calculadoras** | Costo de una asignación (desglose por pares), qubits y presupuesto para cualquier N, iteraciones óptimas de Grover (simulación frente a sin²((2j+1)θ)) y conversor índice ↔ asignación |
 | **Comparador gráfico** | N! frente al presupuesto de Grover frente a las consultas medidas, en escala logarítmica hasta N = 14 |
