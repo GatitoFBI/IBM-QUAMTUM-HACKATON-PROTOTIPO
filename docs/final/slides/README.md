@@ -4,6 +4,8 @@ Seis diapositivas en español, formato 16:9, correspondientes a las seis pantall
 
 **[Abrir la presentación en la web](https://q-nino.vercel.app/slides)**
 
+[Instrucciones de despliegue y verificación para el administrador de Vercel](DESPLIEGUE.md).
+
 | Formato | Uso |
 |---|---|
 | [Ver PDF](Q_Nino_Pitch_Final_4min.pdf) | Presentar o compartir las seis diapositivas |
