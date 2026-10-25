@@ -1,5 +1,11 @@
 {
   "framework": null,
   "buildCommand": "",
-  "outputDirectory": "."
+  "outputDirectory": ".",
+  "rewrites": [
+    {
+      "source": "/slides",
+      "destination": "/slides/index.html"
+    }
+  ]
 }
