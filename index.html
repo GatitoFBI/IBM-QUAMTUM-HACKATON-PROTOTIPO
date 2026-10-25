@@ -197,7 +197,9 @@
       <li><span><b>Datos de prueba:</b> faltan las matrices qap10 para validar los óptimos de control (24, 32 y 340).</span></li>
       <li><span><b>Versión honesta:</b> sin la parada anticipada <code>if not marcados: break</code>; cada ejecución termina al agotar el presupuesto.</span></li>
     </ol></div>
-    <div class="card"><h3>Fórmulas</h3><div class="formula">C(p) = Σ<sub>i&lt;k</sub> F[i][k] · D[p(i)][p(k)]<br>qubits = ⌈log₂(N!)⌉ &nbsp;(one-hot: N²)<br>presupuesto = 22,5·√M + 1,4·log₂²M, &nbsp;M = N!<br>θ = asin(√(k/S)), &nbsp;P(j) = sin²((2j+1)θ)<br>j óptimo ≈ π/(4θ) − ½<br>BBHT: j ~ U{0, …, ⌈m⌉−1}; sin mejora m ← min(1,2·m, √M)</div></div>
+    <div class="card"><div class="row between"><h3>Fórmulas</h3>
+      <label class="f fN">Ejemplo con N = <b id="fNv" class="mono">6</b><input type="range" id="fN" min="3" max="14" value="6" aria-label="N para los ejemplos"></label></div>
+      <ol class="flist" id="formulas"></ol></div>
   </div>
 </section>
 

@@ -276,3 +276,19 @@ svg.circuit text{font-family:var(--mono)}
 details summary.small{cursor:pointer;color:var(--muted)}
 html.motion svg.circuit .cstage{transition:fill-opacity .2s}
 html.motion svg.circuit .cstage:hover{fill-opacity:.2}
+
+/* Fórmulas (Glosario) */
+.fN{min-width:200px;grid-auto-flow:row}
+.flist{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.flist li{display:grid;grid-template-columns:30px minmax(0,1fr);gap:12px;padding:10px 12px;border-radius:10px;background:var(--sunk);transition:background .2s,transform .2s}
+.flist .fn{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font:700 .8rem var(--mono);background:var(--qiskit);color:var(--on-qiskit)}
+.flist .ft{font:600 .78rem var(--mono);text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.flist .fm{font:italic 1.12rem/1.5 "Cambria Math","Cambria","STIX Two Math","Times New Roman",serif;color:var(--ink);margin:2px 0;overflow-x:auto;white-space:nowrap}
+.flist p{font-size:.86rem;color:var(--muted)}
+.flist .fx{margin-top:4px;color:var(--ink)}
+.flist .fx b{color:var(--otono-ink);font-variant-numeric:tabular-nums}
+html.motion .flist li:hover{background:color-mix(in srgb,var(--qiskit) 10%,var(--sunk));transform:translateX(3px)}
+html.motion section.view:not([hidden]) .flist li{animation:fadeUp .45s cubic-bezier(.2,.7,.2,1) backwards;animation-delay:calc(var(--i,0) * 70ms + 150ms)}
+html.motion .flist .fn{transition:transform .3s}
+html.motion .flist li:hover .fn{transform:rotate(360deg)}
+#v-glosario .g2e{align-items:start}

@@ -141,7 +141,7 @@ async function solve(quiet) {
     } else if (pre) { R = normalizaFase(clone(pre)); R.motor = "qiskit-precalculado"; }
     else { btn.innerHTML = `<span class="spinner"></span> Calculando…`; await new Promise(r => setTimeout(r, 20)); R = G.resolver(clone(cur), { semilla, repeticiones: reps }); }
     R.brigadas = [...cur.brigadas]; R.zonas = [...cur.zonas]; stale = false; mapFresh = true;
-    renderResults(); drawMap(); setupAnim(); renderCalcs(); renderCompare();
+    renderResults(); drawMap(); setupAnim(); renderCalcs(); renderCompare(); renderFormulas(false);
     if (!quiet) toast(`Listo: óptimo ${R.optimo}, Grover acertó ${R.runs.filter(r => r.optimo).length}/${R.runs.length}`);
   } catch (err) { toast("Error del backend Qiskit: " + err.message + ". Usando el motor del navegador."); useBackend = false; updEngine(); btn.disabled = false; btn.textContent = "Resolver con Grover"; return solve(quiet); }
   btn.disabled = false; btn.textContent = "Resolver con Grover";
@@ -365,6 +365,37 @@ $("gl").innerHTML = [["QAP", "Problema de asignación cuadrática: asignar N ele
   ["Umbral", "Mejor costo encontrado hasta el momento; el oráculo marca lo que lo mejora."], ["BBHT", "Boyer, Brassard, Høyer y Tapp: elegir al azar el número de iteraciones cuando no se sabe cuántos estados están marcados."],
   ["Dürr–Høyer", "Algoritmo para encontrar el mínimo con Grover en O(√M) consultas."]].map(([t, d]) => `<dt>${t}</dt><dd>${d}</dd>`).join("");
 $("circ").textContent = Q?.instancias?.[3]?.circuito_texto || "Ejecuta qiskit_grover.py para ver el circuito.";
+
+/* Fórmulas: cada una con su significado y un valor de ejemplo que cambia con N */
+function renderFormulas(animate) {
+  const n = +$("fN").value, M = G.fact(n), q = G.qubits(M), S = 2 ** q, b = G.presupuesto(M);
+  const th = Math.asin(Math.sqrt(1 / S)), p1 = Math.sin(3 * th) ** 2, jopt = Math.max(0, Math.round(Math.PI / (4 * th) - .5)), pj = Math.sin((2 * jopt + 1) * th) ** 2;
+  const num = (x, d = 0) => `<b class="fv" data-v="${x}" data-d="${d}">${Number(x).toLocaleString("es", { maximumFractionDigits: d, minimumFractionDigits: d })}</b>`;
+  $("fNv").textContent = n;
+  const F = [
+    ["Costo de una asignación", `C(p) = Σ<sub>i&lt;k</sub> F<sub>ik</sub> · D<sub>p(i) p(k)</sub>`, "Por cada par de brigadas: su sinergia por las horas entre sus zonas. Es lo que se minimiza.",
+      R ? `Datos actuales (N = ${R.n}): mínimo C* = ${num(R.optimo)}` : "Resuelve en el Simulador para ver el mínimo."],
+    ["Qubits de la codificación", `q = ⌈log<sub>2</sub> N!⌉`, "Cada asignación válida es un número de 0 a N!−1 guardado en binario.",
+      `N = ${n}: ${num(q)} qubits frente a ${num(n * n)} del QUBO one-hot`],
+    ["Presupuesto de Dürr–Høyer", `T = 22,5·√M + 1,4·log<sub>2</sub><sup>2</sup> M, &nbsp; M = N!`, "Consultas al oráculo tras las cuales se detiene la búsqueda adaptativa.",
+      `N = ${n}: ${num(b)} consultas frente a ${num(M)} evaluaciones de la fuerza bruta${b < M ? ` (${num(M / b, 1)} veces menos)` : " (aún más que N!)"}`],
+    ["Amplificación de amplitud", `θ = asin √(k / S), &nbsp; P(j) = sin<sup>2</sup>((2j+1)·θ)`, "Probabilidad de medir un índice marcado tras j iteraciones; k marcados de S = 2<sup>q</sup> índices.",
+      `N = ${n}, k = 1: una iteración multiplica la probabilidad por ${num(p1 * S, 2)}${p1 >= .001 ? ` (de ${num(100 / S, 2)} % a ${num(p1 * 100, 1)} %)` : ` (de 1/${S.toLocaleString("es")} a ≈ ${num(p1 * S, 2)}/${S.toLocaleString("es")})`}`],
+    ["Iteraciones óptimas", `j* ≈ π / (4θ) − ½`, "Con más iteraciones la probabilidad se pasa de largo y vuelve a bajar.",
+      `N = ${n}, k = 1: j* = ${num(jopt)} → P = ${num(pj * 100, 1)} %`],
+    ["Regla BBHT", `j ~ U{0, …, ⌈m⌉−1}; &nbsp; sin mejora: m ← min(1,2·m, √M)`, "Como no se sabe cuántos índices están marcados, j se elige al azar y el rango crece poco a poco.",
+      `N = ${n}: m crece hasta √M = ${num(Math.sqrt(M), 1)}`]];
+  $("formulas").innerHTML = F.map(([t, f, d, v], i) => `<li style="--i:${i}"><span class="fn">${i + 1}</span><div><span class="ft">${t}</span><div class="fm">${f}</div><p>${d}</p><p class="fx">${v}</p></div></li>`).join("");
+  if (animate) document.querySelectorAll("#formulas .fv").forEach(el => countUpTo(el, +el.dataset.v, +el.dataset.d));
+}
+function countUpTo(el, target, dec) {
+  if (reduced() || !isFinite(target)) return;
+  const t0 = performance.now(), T = 600, fmt = x => x.toLocaleString("es", { maximumFractionDigits: dec, minimumFractionDigits: dec });
+  const step = t => { const k = Math.min(1, (t - t0) / T), e = 1 - (1 - k) ** 3; el.textContent = fmt(target * e); if (k < 1) requestAnimationFrame(step); };
+  requestAnimationFrame(step);
+}
+$("fN").oninput = () => renderFormulas(true);
+renderFormulas(false);
 
 /* Circuito de una iteración (N = 3): el mismo de qiskit_grover.py, dibujado por etapas */
 (function drawCircuit() {
