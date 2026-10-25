@@ -1,0 +1,6 @@
+# Entorno independiente del servidor web; Python 3.14 usado en el informe.
+qiskit==2.6.1
+qiskit-aer==0.17.2
+numpy==2.5.4
+pytest==9.1.1
+matplotlib==3.11.2

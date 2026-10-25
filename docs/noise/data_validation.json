@@ -1,0 +1,16 @@
+{
+  "reproducible_exactly": [
+    "runs",
+    "summary",
+    "sweep",
+    "distributions",
+    "steps.csv"
+  ],
+  "runs": 2000,
+  "grover_runs": 1000,
+  "steps": 61225,
+  "distributions": 337,
+  "budget_padding_and_matched_controls": "passed",
+  "readout_and_analytic_sweep": "passed",
+  "benchmark_sha256": "1e35e30bc14e6e43e09e44c5beab1613798d8073886f66475eddb0c1753ff092"
+}

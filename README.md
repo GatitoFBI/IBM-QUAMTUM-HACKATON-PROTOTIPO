@@ -329,6 +329,36 @@ python -m venv .venv
 
 Los tests verifican que Grover encuentra el óptimo de N = 3 (285) y que una iteración con 1 marcado entre 8 da exactamente 25/32.
 
+### Benchmark de ruido sintético (N=3 y N=4)
+
+El módulo independiente `qiskit_grover_noise.py` reutiliza el circuito original y compara ideal, ruido leve, moderado y fuerte; `--thermal` añade relajación T1/T2. Conserva una medición por paso BBHT, rechaza padding y agota el presupuesto original. Incluye control aleatorio con igual presupuesto y un barrido de amplificación por circuito. Son escenarios sintéticos, **no calibraciones IBM ni ejecuciones en hardware**.
+
+```sh
+python3 -m venv .venv-noise
+.venv-noise/bin/python -m pip install -r requirements-noise.txt
+.venv-noise/bin/python -m pytest -q test_grover.py test_grover_noise.py
+.venv-noise/bin/python qiskit_grover_noise.py --sizes 3 4 --repetitions 100 --seed-start 42 --thermal --output docs/noise
+```
+
+En Windows, sustituir `.venv-noise/bin/python` por `.venv-noise\Scripts\python.exe`. El entorno publicado se ejecutó con Python 3.14. Los resultados, intervalos Wilson 95%, costos físicos, hashes y límites se encuentran en [el informe](docs/noise/REPORT.md), con [datos completos JSON](docs/noise/results.json), CSV por ejecución/paso, [gráfico de amplificación](docs/noise/amplification.png) y [evidencia de pruebas y viabilidad N5](docs/noise/VALIDATION.md). Para reproducir todas las versiones instaladas: `pip install -r docs/noise/environment.txt` dentro del entorno aislado. `--reference-script /ruta/qiskit_grover.py` comprueba igualdad SHA-256 con un archivo recibido antes de ejecutar. El benchmark no escribe `datos.js` ni cambia la API ideal.
+
+### Informe completo y recomendaciones para el ruido
+
+- [Informe técnico en PDF, 18 páginas](docs/noise/informe/INFORME_RUIDO_GROVER.pdf).
+- [Excel con todas las tablas y registros, 19 hojas](docs/noise/informe/DATOS_RUIDO_GROVER.xlsx).
+- [Paquete completo descargable: informe, código, CSV y JSON](docs/noise/informe/ENTREGA_RUIDO_GROVER.zip).
+- [Informe en Markdown](docs/noise/informe/INFORME_RUIDO_GROVER.md), [validación de la entrega](docs/noise/informe/VALIDACION_ENTREGA.json) y [manifiesto de integridad](docs/noise/informe/MANIFIESTO_SHA256.json).
+
+El informe conserva matrices, parámetros de ruido, semillas, intervalos de confianza, todos los agregados y barridos, las 2.000 ejecuciones de la campaña principal y sus 61.225 pasos. El Excel y los CSV incluyen también la campaña adicional de compilación. La carpeta `docs/noise/informe/` contiene los formatos de lectura y descarga; el ZIP incluye la entrega íntegra con código, evidencia y estructura reproducible. Los datos fuente también están en `docs/noise/` y `docs/noise/mitigation/`.
+
+La [comparación de compilación de niveles 0 y 3](docs/noise/mitigation/README.md) añade 1.000 ejecuciones de N=4, incluidas 500 repeticiones del control de nivel 0. Mantiene BBHT y su presupuesto. En el diagnóstico de cuatro iteraciones, la profundidad pasa de 737 a 506 y la probabilidad del óptimo con ruido leve de 12,53 % a 13,78 %. El ahorro de recursos está medido; no se demuestra una mejora general del éxito final. Las recomendaciones distinguen estos resultados de técnicas todavía pendientes de validar en hardware.
+
+```sh
+.venv-noise/bin/python qiskit_grover_mitigation.py \
+  --source-dir . --baseline docs/noise/results.json \
+  --output resultados_mitigacion
+```
+
 ## 10. Estructura del repositorio
 
 | Ruta | Contenido |

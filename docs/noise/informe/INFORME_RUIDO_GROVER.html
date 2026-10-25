@@ -1,0 +1,2738 @@
+<!doctype html><html lang="es"><meta charset="utf-8"><title>Informe de ruido en Grover</title><style>body{font:16px/1.55 system-ui,sans-serif;color:#182839;margin:40px auto;max-width:1100px;padding:0 24px}h1,h2,h3{color:#123a5a;line-height:1.2}h2{margin-top:2em}table{border-collapse:collapse;width:100%;font-size:13px;margin:20px 0}th{background:#123a5a;color:white;text-align:left}td,th{border:1px solid #d7e0e6;padding:8px}tr:nth-child(even){background:#f2f6f8}img{max-width:100%}pre{background:#eef3f6;padding:16px;overflow:auto}p{overflow-wrap:anywhere}@media print{body{font-size:10pt;margin:0}h2,h3{break-after:avoid}tr{break-inside:avoid}thead{display:table-header-group}pre{white-space:pre-wrap}}</style><body><h1>Informe de ruido en Grover Adaptive Search</h1>
+<p>Q-Niño · QAP de asignación de brigadas · 25 de octubre de 2026</p>
+<p>Este informe documenta las pruebas del archivo qiskit_grover.py, explica cada tabla y propone medidas para reducir el efecto del ruido. Incluye resultados completos de N=3 y N=4, un diagnóstico de amplificación por circuito y una evaluación adicional de compilación optimizada. Los perfiles son sintéticos: los resultados describen este simulador y estas instancias, no una calibración o ejecución de un procesador IBM.</p>
+<h2>1. Resultado principal y decisión recomendada</h2>
+<p>El algoritmo puede seguir encontrando el óptimo gracias a los reintentos, aunque el ruido haya deteriorado la amplificación cuántica. Para N=4, el éxito final pasa de 100/100 en ideal a 94/100 en ruido moderado, 88/100 en fuerte y 90/100 al añadir relajación T1/T2 al moderado. El control uniforme también logra 100/100 en estos grupos; no se ha demostrado ventaja cuántica.</p>
+<table>
+<thead>
+<tr>
+<th>Perfil N=4</th>
+<th>Óptimos finales</th>
+<th>IC Wilson 95 %</th>
+<th>P óptimo, circuito j=4</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ideal</td>
+<td>100/100</td>
+<td>96,30 % a 100,00 %</td>
+<td>99,9182 %</td>
+</tr>
+<tr>
+<td>Leve</td>
+<td>100/100</td>
+<td>96,30 % a 100,00 %</td>
+<td>12,5333 %</td>
+</tr>
+<tr>
+<td>Moderado</td>
+<td>94/100</td>
+<td>87,52 % a 97,22 %</td>
+<td>3,2482 %</td>
+</tr>
+<tr>
+<td>Fuerte</td>
+<td>88/100</td>
+<td>80,19 % a 93,00 %</td>
+<td>3,1250 %</td>
+</tr>
+<tr>
+<td>Moderado + T1/T2</td>
+<td>90/100</td>
+<td>82,56 % a 94,48 %</td>
+<td>3,1191 %</td>
+</tr>
+</tbody>
+</table>
+<p>Prioridad recomendada: reducir puertas y profundidad; después estudiar un número de iteraciones adaptado al ruido y al umbral, y finalmente calibrar y mitigar la lectura si se trabaja con distribuciones de muchos shots. DD, twirling y ZNE requieren condiciones específicas y no se deben activar como una receta universal. La sección 9 diferencia evidencia ya medida, hipótesis por validar y técnicas que no corrigen este flujo de una sola muestra.</p>
+<p>El PDF muestra todos los agregados y los barridos completos con redondeo legible. El Excel conserva los campos numéricos y todos los registros; los CSV y JSON originales del paquete son la referencia de precisión para reproducciones y auditorías.</p>
+<h2>2. Procedencia, alcance y entorno</h2>
+<table>
+<thead>
+<tr>
+<th>Elemento</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Repositorio</td>
+<td>GatitoFBI/IBM-QUAMTUM-HACKATON-PROTOTIPO</td>
+</tr>
+<tr>
+<td>Revisión base</td>
+<td>9a471806931d3e78d749499cd13019d9e300fbb4</td>
+</tr>
+<tr>
+<td>Archivo recibido</td>
+<td>/Users/sebasbimbi/Downloads/qiskit_grover.py</td>
+</tr>
+<tr>
+<td>Campaña principal UTC</td>
+<td>2026-10-25T15:23:53.166001+00:00</td>
+</tr>
+<tr>
+<td>Python del experimento</td>
+<td>3.14.7 · macOS ARM64</td>
+</tr>
+<tr>
+<td>Versiones</td>
+<td>qiskit 2.6.1, qiskit-aer 0.17.2, numpy 2.5.4, pytest 9.1.1, matplotlib 3.11.2</td>
+</tr>
+<tr>
+<td>Instancias completas</td>
+<td>Una matriz F y D fija por tamaño: N=3 y N=4</td>
+</tr>
+<tr>
+<td>Semillas de búsqueda</td>
+<td>42 a 141 inclusive; 100 por tamaño y perfil</td>
+</tr>
+<tr>
+<td>Método</td>
+<td>Aer density_matrix; un hilo; precisión de doble flotante</td>
+</tr>
+<tr>
+<td>Compilación inicial</td>
+<td>rz/sx/x/cx; optimization_level=0; seed_transpiler=42</td>
+</tr>
+<tr>
+<td>Conectividad</td>
+<td>Sin coupling_map, routing, backend físico ni calibración</td>
+</tr>
+<tr>
+<td>Tamaños restantes</td>
+<td>N=5: ensayo preliminar y campaña incompleta por timeout. N=6: no ejecutado</td>
+</tr>
+</tbody>
+</table>
+<p>El SHA-256 del archivo de Downloads coincide con el del núcleo importado del repositorio. Se conservó el original; la simulación de ruido se implementó en un módulo separado. Los errores se aplican después de descomponer las puertas DiagonalGate y mcx a la base declarada, para que el modelo actúe sobre las instrucciones realmente ejecutadas.</p>
+<p>SHA-256 original y Downloads: c71fdca73a6f9a0d9ae4e179ec83d3b4962fc084b21abc4c18ada240a462e409</p>
+<p>SHA-256 del benchmark de la campaña principal: 1e35e30bc14e6e43e09e44c5beab1613798d8073886f66475eddb0c1753ff092</p>
+<h2>3. Problema e instancias exactas</h2>
+<p>Cada estado válido representa una permutación p que asigna brigadas a zonas. El costo es C(p)=Σ(i&lt;k) F[i,k]·D[p(i),p(k)]. F y D son simétricas con diagonal cero. Se enumeran las N! permutaciones en el orden lexicográfico de itertools.permutations(range(N)); el índice del estado identifica esa fila de la tabla de costos. La tabla se calcula clásicamente antes de la búsqueda y también proporciona el óptimo de control.</p>
+<p>Las matrices son sintéticas reproducibles. generar_datos(N) usa default_rng(42+N): semilla 45 para N=3 y 46 para N=4. Se toman enteros de [1,10) para F y [5,20) para D, se conserva el triángulo superior y se suma su transpuesta. No son mediciones de tiempos reales de respuesta.</p>
+<table>
+<thead>
+<tr>
+<th>N</th>
+<th>N!</th>
+<th>Qubits q</th>
+<th>Estados 2^q</th>
+<th>Padding</th>
+<th>Óptimo</th>
+<th>Índices óptimos</th>
+<th>Presupuesto B</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>3</td>
+<td>6</td>
+<td>3</td>
+<td>8</td>
+<td>2</td>
+<td>285</td>
+<td>1, 3, 4, 5</td>
+<td>64,468363</td>
+</tr>
+<tr>
+<td>4</td>
+<td>24</td>
+<td>5</td>
+<td>32</td>
+<td>8</td>
+<td>202</td>
+<td>23</td>
+<td>139,657672</td>
+</tr>
+</tbody>
+</table>
+<h3>3.1. Matrices y costos de N=3</h3>
+<p>Matriz F; índices desde cero.</p>
+<table>
+<thead>
+<tr>
+<th>Fila</th>
+<th>0</th>
+<th>1</th>
+<th>2</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>0</td>
+<td>6</td>
+<td>7</td>
+</tr>
+<tr>
+<td>1</td>
+<td>6</td>
+<td>0</td>
+<td>7</td>
+</tr>
+<tr>
+<td>2</td>
+<td>7</td>
+<td>7</td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
+<p>Matriz D; índices desde cero.</p>
+<table>
+<thead>
+<tr>
+<th>Fila</th>
+<th>0</th>
+<th>1</th>
+<th>2</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>0</td>
+<td>11</td>
+<td>16</td>
+</tr>
+<tr>
+<td>1</td>
+<td>11</td>
+<td>0</td>
+<td>16</td>
+</tr>
+<tr>
+<td>2</td>
+<td>16</td>
+<td>16</td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>Índice</th>
+<th>Permutación p</th>
+<th>Costo C(p)</th>
+<th>Es óptimo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>[0, 1, 2]</td>
+<td>290</td>
+<td>No</td>
+</tr>
+<tr>
+<td>1</td>
+<td>[0, 2, 1]</td>
+<td>285</td>
+<td>Sí</td>
+</tr>
+<tr>
+<td>2</td>
+<td>[1, 0, 2]</td>
+<td>290</td>
+<td>No</td>
+</tr>
+<tr>
+<td>3</td>
+<td>[1, 2, 0]</td>
+<td>285</td>
+<td>Sí</td>
+</tr>
+<tr>
+<td>4</td>
+<td>[2, 0, 1]</td>
+<td>285</td>
+<td>Sí</td>
+</tr>
+<tr>
+<td>5</td>
+<td>[2, 1, 0]</td>
+<td>285</td>
+<td>Sí</td>
+</tr>
+</tbody>
+</table>
+<h3>3.2. Matrices y costos de N=4</h3>
+<p>Matriz F; índices desde cero.</p>
+<table>
+<thead>
+<tr>
+<th>Fila</th>
+<th>0</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>0</td>
+<td>9</td>
+<td>2</td>
+<td>1</td>
+</tr>
+<tr>
+<td>1</td>
+<td>9</td>
+<td>0</td>
+<td>3</td>
+<td>6</td>
+</tr>
+<tr>
+<td>2</td>
+<td>2</td>
+<td>3</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr>
+<td>3</td>
+<td>1</td>
+<td>6</td>
+<td>1</td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
+<p>Matriz D; índices desde cero.</p>
+<table>
+<thead>
+<tr>
+<th>Fila</th>
+<th>0</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>0</td>
+<td>12</td>
+<td>11</td>
+<td>16</td>
+</tr>
+<tr>
+<td>1</td>
+<td>12</td>
+<td>0</td>
+<td>13</td>
+<td>12</td>
+</tr>
+<tr>
+<td>2</td>
+<td>11</td>
+<td>13</td>
+<td>0</td>
+<td>5</td>
+</tr>
+<tr>
+<td>3</td>
+<td>16</td>
+<td>12</td>
+<td>5</td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>Índice</th>
+<th>Permutación p</th>
+<th>Costo C(p)</th>
+<th>Es óptimo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>[0, 1, 2, 3]</td>
+<td>262</td>
+<td>No</td>
+</tr>
+<tr>
+<td>1</td>
+<td>[0, 1, 3, 2]</td>
+<td>270</td>
+<td>No</td>
+</tr>
+<tr>
+<td>2</td>
+<td>[0, 2, 1, 3]</td>
+<td>220</td>
+<td>No</td>
+</tr>
+<tr>
+<td>3</td>
+<td>[0, 2, 3, 1]</td>
+<td>248</td>
+<td>No</td>
+</tr>
+<tr>
+<td>4</td>
+<td>[0, 3, 1, 2]</td>
+<td>258</td>
+<td>No</td>
+</tr>
+<tr>
+<td>5</td>
+<td>[0, 3, 2, 1]</td>
+<td>278</td>
+<td>No</td>
+</tr>
+<tr>
+<td>6</td>
+<td>[1, 0, 2, 3]</td>
+<td>280</td>
+<td>No</td>
+</tr>
+<tr>
+<td>7</td>
+<td>[1, 0, 3, 2]</td>
+<td>264</td>
+<td>No</td>
+</tr>
+<tr>
+<td>8</td>
+<td>[1, 2, 0, 3]</td>
+<td>232</td>
+<td>No</td>
+</tr>
+<tr>
+<td>9</td>
+<td>[1, 2, 3, 0]</td>
+<td>250</td>
+<td>No</td>
+</tr>
+<tr>
+<td>10</td>
+<td>[1, 3, 0, 2]</td>
+<td>234</td>
+<td>No</td>
+</tr>
+<tr>
+<td>11</td>
+<td>[1, 3, 2, 0]</td>
+<td>268</td>
+<td>No</td>
+</tr>
+<tr>
+<td>12</td>
+<td>[2, 0, 1, 3]</td>
+<td>274</td>
+<td>No</td>
+</tr>
+<tr>
+<td>13</td>
+<td>[2, 0, 3, 1]</td>
+<td>254</td>
+<td>No</td>
+</tr>
+<tr>
+<td>14</td>
+<td>[2, 1, 0, 3]</td>
+<td>268</td>
+<td>No</td>
+</tr>
+<tr>
+<td>15</td>
+<td>[2, 1, 3, 0]</td>
+<td>262</td>
+<td>No</td>
+</tr>
+<tr>
+<td>16</td>
+<td>[2, 3, 0, 1]</td>
+<td>212</td>
+<td>No</td>
+</tr>
+<tr>
+<td>17</td>
+<td>[2, 3, 1, 0]</td>
+<td>226</td>
+<td>No</td>
+</tr>
+<tr>
+<td>18</td>
+<td>[3, 0, 1, 2]</td>
+<td>288</td>
+<td>No</td>
+</tr>
+<tr>
+<td>19</td>
+<td>[3, 0, 2, 1]</td>
+<td>284</td>
+<td>No</td>
+</tr>
+<tr>
+<td>20</td>
+<td>[3, 1, 0, 2]</td>
+<td>270</td>
+<td>No</td>
+</tr>
+<tr>
+<td>21</td>
+<td>[3, 1, 2, 0]</td>
+<td>256</td>
+<td>No</td>
+</tr>
+<tr>
+<td>22</td>
+<td>[3, 2, 0, 1]</td>
+<td>212</td>
+<td>No</td>
+</tr>
+<tr>
+<td>23</td>
+<td>[3, 2, 1, 0]</td>
+<td>202</td>
+<td>Sí</td>
+</tr>
+</tbody>
+</table>
+<p>N=3 tiene cuatro óptimos entre seis asignaciones. Al marcar esos cuatro estados, k/2^q=4/8=1/2: la fórmula ideal de Grover da 1/2 para cualquier j entero. Este caso no demuestra amplificación ni robustez. N=4 tiene un óptimo único: índice 23, permutación [3,2,1,0], costo 202.</p>
+<h2>4. Diseño de la prueba y modelos de ruido</h2>
+<table>
+<thead>
+<tr>
+<th>Perfil</th>
+<th>λ 1 qubit</th>
+<th>λ 2 qubits</th>
+<th>Flip lectura/bit</th>
+<th>Relajación</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ideal</td>
+<td>0,000</td>
+<td>0,000</td>
+<td>0,000</td>
+<td>No</td>
+</tr>
+<tr>
+<td>Leve</td>
+<td>0,001</td>
+<td>0,010</td>
+<td>0,010</td>
+<td>No</td>
+</tr>
+<tr>
+<td>Moderado</td>
+<td>0,005</td>
+<td>0,030</td>
+<td>0,030</td>
+<td>No</td>
+</tr>
+<tr>
+<td>Fuerte</td>
+<td>0,010</td>
+<td>0,100</td>
+<td>0,050</td>
+<td>No</td>
+</tr>
+<tr>
+<td>Moderado + T1/T2</td>
+<td>0,005</td>
+<td>0,030</td>
+<td>0,030</td>
+<td>T1=100 μs, T2=80 μs</td>
+</tr>
+</tbody>
+</table>
+<p>Los nombres leve, moderado y fuerte son etiquetas de estos escenarios; no representan rangos calibrados de un chip. El parámetro λ de despolarización define E(ρ)=(1−λ)ρ+λ I/(2^d), con d=1 o 2 según la puerta. No equivale directamente a la probabilidad de fallo ni a la infidelidad media de puerta. λ_BBHT=6/5 es otra variable, independiente de estos errores. [S7]</p>
+<p>El canal de un qubit actúa tras sx y x; el de dos qubits, tras cx. Rz se trata como rotación virtual sin ruido. En el perfil térmico se compone despolarización seguida de relajación independiente en los qubits afectados, con duraciones 35 ns para sx/x y 300 ns para cx y población excitada de equilibrio cero. No se modelan esperas ociosas, reset, crosstalk ni variación entre qubits. [S5, S8]</p>
+<p>La lectura aplica a cada bit la matriz [[1−e,e],[e,1−e]], con errores independientes. save_probabilities conserva la distribución antes de medir, por lo que se aplica este canal clásico explícitamente. La transformación se contrastó con un circuito medido por Aer que usa ReadoutError. No se renormaliza eliminando estados inválidos.</p>
+<table>
+<thead>
+<tr>
+<th>Componente</th>
+<th>Cantidad o regla</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Diseño</td>
+<td>2 tamaños × 5 perfiles × 100 semillas = 1.000 búsquedas Grover</td>
+</tr>
+<tr>
+<td>Control</td>
+<td>1.000 búsquedas uniformes emparejadas; 2.000 filas totales</td>
+</tr>
+<tr>
+<td>Pasos reales almacenados</td>
+<td>61.225 pasos de Grover; una muestra por paso</td>
+</tr>
+<tr>
+<td>Circuitos / distribuciones</td>
+<td>80 circuitos compilados; 337 distribuciones calculadas</td>
+</tr>
+<tr>
+<td>Caché</td>
+<td>60948 reutilizaciones; no añade muestras al algoritmo</td>
+</tr>
+<tr>
+<td>IC de éxito</td>
+<td>Wilson bilateral 95 %, z=1,959963984540054, n=100</td>
+</tr>
+<tr>
+<td>Barrido diagnóstico</td>
+<td>N=3: j=0…4; N=4: j=0…6; cinco perfiles</td>
+</tr>
+<tr>
+<td>Reutilización de semillas</td>
+<td>Las mismas semillas entre perfiles; resultados emparejados</td>
+</tr>
+<tr>
+<td>Validación de lectura</td>
+<td>60.000 shots únicamente en el test, no en cada paso BBHT</td>
+</tr>
+</tbody>
+</table>
+<h2>5. Procedimiento reproducido paso a paso</h2>
+<ol>
+<li>
+<p>Generar F y D; enumerar permutaciones, calcular todos sus costos y obtener el mínimo clásico. Ese mínimo se usa para evaluar resultados y construir el diagnóstico, nunca como criterio de parada anticipada.</p>
+</li>
+<li>
+<p>Iniciar y uniformemente entre 0 y N!−1. Fijar m=1 y consultas consumidas C=0. El presupuesto es B=22,5·sqrt(N!)+1,4·log2(N!)².</p>
+</li>
+<li>
+<p>Mientras C&lt;B, marcar todos los índices válidos cuyo costo sea estrictamente menor que el costo de y; tomar j uniformemente entre 0 y ceil(m)−1.</p>
+</li>
+<li>
+<p>Construir H^q seguido de j repeticiones de oráculo de fase y difusión. Compilar a rz/sx/x/cx y simular su matriz de densidad con el perfil elegido. Aplicar el canal de lectura.</p>
+</li>
+<li>
+<p>Tomar una única muestra de la distribución sobre los 2^q estados. Aumentar C en max(j,1), contabilizar j llamadas de oráculo y registrar las puertas físicas. Un índice ≥N! es inválido y consume igualmente presupuesto.</p>
+</li>
+<li>
+<p>Si el índice es válido y mejora estrictamente el costo, actualizar y y reiniciar m=1; en otro caso, m=min((6/5)m,sqrt(N!)). Continuar aunque ya no existan marcados. Sólo el último paso puede sobrepasar el presupuesto.</p>
+</li>
+<li>
+<p>Al finalizar, comparar el costo con el óptimo clásico; calcular gap, éxito, recursos, inválidos y primera llegada al óptimo. Repetir para las 100 semillas y cinco perfiles.</p>
+</li>
+<li>
+<p>Para cada búsqueda, ejecutar un control con la misma y inicial y C propuestas uniformes en el registro completo. El control usa SeedSequence([semilla,N,1]); una propuesta consume una unidad incluso si cae en padding.</p>
+</li>
+</ol>
+<p>El control random_matched mide la búsqueda uniforme en el mismo registro; no representa el mejor algoritmo clásico. Un algoritmo clásico puede evitar padding muestreando directamente las N! permutaciones. La inicialización y la tabla de costos quedan fuera del presupuesto en ambos casos. No se comparan tiempos físicos de QPU ni un costo completo de cálculo del QAP.</p>
+<p>Las probabilidades guardadas son exactas para el modelo numérico de matriz de densidad, salvo redondeo. La aleatoriedad de cada búsqueda viene de las elecciones j, y y del muestreo de esas probabilidades. Los IC describen el éxito entre semillas de una instancia fija, no la variación entre instancias QAP ni un intervalo de la diferencia entre perfiles.</p>
+<p>Wilson se calcula con p̂=s/n: centro=(p̂+z²/(2n))/(1+z²/n), radio=z·sqrt(p̂(1−p̂)/n+z²/(4n²))/(1+z²/n). El intervalo es centro±radio, acotado a [0,1]. Para 100/100, el límite inferior es 96,30 %, no una garantía de éxito universal.</p>
+<h3>5.1. Ejemplo real de una ejecución</h3>
+<p>N=4, perfil ideal, semilla 42. El umbral inicial es el índice 2, costo 220. Las primeras seis filas siguientes se leen directamente de steps.csv; la tabla completa conserva todos los pasos.</p>
+<table>
+<thead>
+<tr>
+<th>Paso</th>
+<th>Umbral</th>
+<th>Marcados</th>
+<th>j</th>
+<th>Medición</th>
+<th>Costo medido</th>
+<th>Mejora</th>
+<th>C acum.</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>220</td>
+<td>3</td>
+<td>0</td>
+<td>14</td>
+<td>268</td>
+<td>No</td>
+<td>1</td>
+</tr>
+<tr>
+<td>2</td>
+<td>220</td>
+<td>3</td>
+<td>1</td>
+<td>23</td>
+<td>202</td>
+<td>Sí</td>
+<td>2</td>
+</tr>
+<tr>
+<td>3</td>
+<td>202</td>
+<td>0</td>
+<td>0</td>
+<td>22</td>
+<td>212</td>
+<td>No</td>
+<td>3</td>
+</tr>
+<tr>
+<td>4</td>
+<td>202</td>
+<td>0</td>
+<td>0</td>
+<td>31</td>
+<td>Inválido</td>
+<td>No</td>
+<td>4</td>
+</tr>
+<tr>
+<td>5</td>
+<td>202</td>
+<td>0</td>
+<td>0</td>
+<td>24</td>
+<td>Inválido</td>
+<td>No</td>
+<td>5</td>
+</tr>
+<tr>
+<td>6</td>
+<td>202</td>
+<td>0</td>
+<td>1</td>
+<td>4</td>
+<td>258</td>
+<td>No</td>
+<td>6</td>
+</tr>
+</tbody>
+</table>
+<p>El paso 2 mide el óptimo 23, costo 202, y actualiza el umbral. La búsqueda continúa: en el paso 4 mide 31, que no representa una permutación y consume una consulta. Este ejemplo muestra por qué “encontró el óptimo” no significa “dejó de gastar recursos”, y por qué el presupuesto no se reduce con información del óptimo clásico.</p>
+<h2>6. Todas las tablas de resultados de la campaña principal</h2>
+<h3>6.1. Calidad y éxito final</h3>
+<table>
+<thead>
+<tr>
+<th>N</th>
+<th>Perfil</th>
+<th>Método</th>
+<th>Éxitos</th>
+<th>IC 95 %</th>
+<th>Gap medio</th>
+<th>Gap relativo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>3</td>
+<td>Ideal</td>
+<td>Grover</td>
+<td>100/100</td>
+<td>96,30–100,00 %</td>
+<td>0,000</td>
+<td>0,0000 %</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Ideal</td>
+<td>Uniforme</td>
+<td>100/100</td>
+<td>96,30–100,00 %</td>
+<td>0,000</td>
+<td>0,0000 %</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Leve</td>
+<td>Grover</td>
+<td>100/100</td>
+<td>96,30–100,00 %</td>
+<td>0,000</td>
+<td>0,0000 %</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Leve</td>
+<td>Uniforme</td>
+<td>100/100</td>
+<td>96,30–100,00 %</td>
+<td>0,000</td>
+<td>0,0000 %</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Moderado</td>
+<td>Grover</td>
+<td>100/100</td>
+<td>96,30–100,00 %</td>
+<td>0,000</td>
+<td>0,0000 %</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Moderado</td>
+<td>Uniforme</td>
+<td>100/100</td>
+<td>96,30–100,00 %</td>
+<td>0,000</td>
+<td>0,0000 %</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Fuerte</td>
+<td>Grover</td>
+<td>100/100</td>
+<td>96,30–100,00 %</td>
+<td>0,000</td>
+<td>0,0000 %</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Fuerte</td>
+<td>Uniforme</td>
+<td>100/100</td>
+<td>96,30–100,00 %</td>
+<td>0,000</td>
+<td>0,0000 %</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Térmico</td>
+<td>Grover</td>
+<td>100/100</td>
+<td>96,30–100,00 %</td>
+<td>0,000</td>
+<td>0,0000 %</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Térmico</td>
+<td>Uniforme</td>
+<td>100/100</td>
+<td>96,30–100,00 %</td>
+<td>0,000</td>
+<td>0,0000 %</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Ideal</td>
+<td>Grover</td>
+<td>100/100</td>
+<td>96,30–100,00 %</td>
+<td>0,000</td>
+<td>0,0000 %</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Ideal</td>
+<td>Uniforme</td>
+<td>100/100</td>
+<td>96,30–100,00 %</td>
+<td>0,000</td>
+<td>0,0000 %</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Leve</td>
+<td>Grover</td>
+<td>100/100</td>
+<td>96,30–100,00 %</td>
+<td>0,000</td>
+<td>0,0000 %</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Leve</td>
+<td>Uniforme</td>
+<td>100/100</td>
+<td>96,30–100,00 %</td>
+<td>0,000</td>
+<td>0,0000 %</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Moderado</td>
+<td>Grover</td>
+<td>94/100</td>
+<td>87,52–97,22 %</td>
+<td>0,600</td>
+<td>0,2970 %</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Moderado</td>
+<td>Uniforme</td>
+<td>100/100</td>
+<td>96,30–100,00 %</td>
+<td>0,000</td>
+<td>0,0000 %</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Fuerte</td>
+<td>Grover</td>
+<td>88/100</td>
+<td>80,19–93,00 %</td>
+<td>1,280</td>
+<td>0,6337 %</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Fuerte</td>
+<td>Uniforme</td>
+<td>100/100</td>
+<td>96,30–100,00 %</td>
+<td>0,000</td>
+<td>0,0000 %</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Térmico</td>
+<td>Grover</td>
+<td>90/100</td>
+<td>82,56–94,48 %</td>
+<td>1,000</td>
+<td>0,4950 %</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Térmico</td>
+<td>Uniforme</td>
+<td>100/100</td>
+<td>96,30–100,00 %</td>
+<td>0,000</td>
+<td>0,0000 %</td>
+</tr>
+</tbody>
+</table>
+<p>Gap=C_final−C_óptimo. Gap relativo=Gap/|C_óptimo|. Se promedian las 100 ejecuciones, incluidos los fracasos. Un gap medio pequeño no equivale a una tasa de éxito alta: una asignación casi óptima sigue siendo un fracaso en la métrica de óptimo exacto.</p>
+<h3>6.2. Consultas, muestras e índices inválidos</h3>
+<table>
+<thead>
+<tr>
+<th>N</th>
+<th>Perfil</th>
+<th>Método</th>
+<th>C medio</th>
+<th>Oráculos</th>
+<th>Circuitos</th>
+<th>Muestras</th>
+<th>Inválidos</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>3</td>
+<td>Ideal</td>
+<td>Grover</td>
+<td>65,22</td>
+<td>46,66</td>
+<td>50,17</td>
+<td>50,17</td>
+<td>25,61 %</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Ideal</td>
+<td>Uniforme</td>
+<td>65,22</td>
+<td>0,00</td>
+<td>0,00</td>
+<td>65,22</td>
+<td>24,78 %</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Leve</td>
+<td>Grover</td>
+<td>65,22</td>
+<td>46,66</td>
+<td>50,17</td>
+<td>50,17</td>
+<td>25,61 %</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Leve</td>
+<td>Uniforme</td>
+<td>65,22</td>
+<td>0,00</td>
+<td>0,00</td>
+<td>65,22</td>
+<td>24,78 %</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Moderado</td>
+<td>Grover</td>
+<td>65,22</td>
+<td>46,66</td>
+<td>50,17</td>
+<td>50,17</td>
+<td>25,61 %</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Moderado</td>
+<td>Uniforme</td>
+<td>65,22</td>
+<td>0,00</td>
+<td>0,00</td>
+<td>65,22</td>
+<td>24,78 %</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Fuerte</td>
+<td>Grover</td>
+<td>65,22</td>
+<td>46,66</td>
+<td>50,17</td>
+<td>50,17</td>
+<td>25,61 %</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Fuerte</td>
+<td>Uniforme</td>
+<td>65,22</td>
+<td>0,00</td>
+<td>0,00</td>
+<td>65,22</td>
+<td>24,78 %</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Térmico</td>
+<td>Grover</td>
+<td>65,22</td>
+<td>46,66</td>
+<td>50,17</td>
+<td>50,17</td>
+<td>25,67 %</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Térmico</td>
+<td>Uniforme</td>
+<td>65,22</td>
+<td>0,00</td>
+<td>0,00</td>
+<td>65,22</td>
+<td>24,78 %</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Ideal</td>
+<td>Grover</td>
+<td>140,85</td>
+<td>122,24</td>
+<td>70,91</td>
+<td>70,91</td>
+<td>24,48 %</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Ideal</td>
+<td>Uniforme</td>
+<td>140,85</td>
+<td>0,00</td>
+<td>0,00</td>
+<td>140,85</td>
+<td>25,54 %</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Leve</td>
+<td>Grover</td>
+<td>141,02</td>
+<td>121,38</td>
+<td>71,92</td>
+<td>71,92</td>
+<td>24,54 %</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Leve</td>
+<td>Uniforme</td>
+<td>141,02</td>
+<td>0,00</td>
+<td>0,00</td>
+<td>141,02</td>
+<td>25,53 %</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Moderado</td>
+<td>Grover</td>
+<td>141,00</td>
+<td>120,74</td>
+<td>72,82</td>
+<td>72,82</td>
+<td>25,16 %</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Moderado</td>
+<td>Uniforme</td>
+<td>141,00</td>
+<td>0,00</td>
+<td>0,00</td>
+<td>141,00</td>
+<td>25,52 %</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Fuerte</td>
+<td>Grover</td>
+<td>140,89</td>
+<td>120,71</td>
+<td>72,71</td>
+<td>72,71</td>
+<td>25,42 %</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Fuerte</td>
+<td>Uniforme</td>
+<td>140,89</td>
+<td>0,00</td>
+<td>0,00</td>
+<td>140,89</td>
+<td>25,51 %</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Térmico</td>
+<td>Grover</td>
+<td>140,94</td>
+<td>120,74</td>
+<td>73,04</td>
+<td>73,04</td>
+<td>24,96 %</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Térmico</td>
+<td>Uniforme</td>
+<td>140,94</td>
+<td>0,00</td>
+<td>0,00</td>
+<td>140,94</td>
+<td>25,50 %</td>
+</tr>
+</tbody>
+</table>
+<p>C es la suma de max(j,1); las llamadas de oráculo son la suma de j. Los circuitos y muestras coinciden para Grover. El control tiene muestras pero no circuitos cuánticos. La tasa de inválidos es Σ inválidos / Σ muestras de todo el grupo, no la media simple de porcentajes por ejecución.</p>
+<h3>6.3. Recursos físicos y primera llegada al óptimo</h3>
+<table>
+<thead>
+<tr>
+<th>N</th>
+<th>Perfil</th>
+<th>CX medios</th>
+<th>sx/x medios</th>
+<th>Rz medios</th>
+<th>Σ profundidad</th>
+<th>Máx. prof. medio</th>
+<th>1.er óptimo C</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>3</td>
+<td>Ideal</td>
+<td>559,92</td>
+<td>897,07</td>
+<td>1561,52</td>
+<td>1722,41</td>
+<td>70,00</td>
+<td>0,68</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Leve</td>
+<td>559,92</td>
+<td>897,07</td>
+<td>1561,52</td>
+<td>1722,41</td>
+<td>70,00</td>
+<td>0,68</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Moderado</td>
+<td>559,92</td>
+<td>897,07</td>
+<td>1561,52</td>
+<td>1722,41</td>
+<td>70,00</td>
+<td>0,68</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Fuerte</td>
+<td>559,92</td>
+<td>897,07</td>
+<td>1561,52</td>
+<td>1722,41</td>
+<td>70,00</td>
+<td>0,68</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Térmico</td>
+<td>559,92</td>
+<td>897,07</td>
+<td>1561,52</td>
+<td>1722,41</td>
+<td>70,00</td>
+<td>0,68</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Ideal</td>
+<td>8067,84</td>
+<td>6222,07</td>
+<td>15361,43</td>
+<td>19742,20</td>
+<td>635,03</td>
+<td>7,89</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Leve</td>
+<td>8011,08</td>
+<td>6185,84</td>
+<td>15485,51</td>
+<td>19795,46</td>
+<td>653,20</td>
+<td>16,70</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Moderado</td>
+<td>7968,84</td>
+<td>6159,62</td>
+<td>16211,90</td>
+<td>20372,09</td>
+<td>690,57</td>
+<td>39,88</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Fuerte</td>
+<td>7966,86</td>
+<td>6157,63</td>
+<td>16491,58</td>
+<td>20607,29</td>
+<td>697,08</td>
+<td>45,09</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Térmico</td>
+<td>7968,84</td>
+<td>6160,72</td>
+<td>16365,16</td>
+<td>20503,09</td>
+<td>694,32</td>
+<td>41,47</td>
+</tr>
+</tbody>
+</table>
+<p>Σ profundidad suma la profundidad lógica de los distintos circuitos y no es una duración en nanosegundos. “Máx. prof. medio” promedia la mayor profundidad de cada ejecución. La primera llegada se promedia sólo entre éxitos, incluye C=0 si la inicialización ya era óptima y nunca detiene el algoritmo; no es una comparación sin sesgo entre grupos con distintas tasas de fracaso. El control tiene cero puertas y profundidad; su primera llegada está completa en el Excel.</p>
+<table>
+<thead>
+<tr>
+<th>N</th>
+<th>Perfil del emparejamiento</th>
+<th>C al primer óptimo del control (sólo éxitos)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>3</td>
+<td>Ideal</td>
+<td>0,72</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Leve</td>
+<td>0,72</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Moderado</td>
+<td>0,72</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Fuerte</td>
+<td>0,72</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Moderado + T1/T2</td>
+<td>0,72</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Ideal</td>
+<td>33,95</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Leve</td>
+<td>33,95</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Moderado</td>
+<td>33,95</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Fuerte</td>
+<td>33,95</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Moderado + T1/T2</td>
+<td>33,95</td>
+</tr>
+</tbody>
+</table>
+<h2>7. Barrido completo de amplificación y diagnóstico de errores</h2>
+<p>Este diagnóstico marca todos los óptimos conocidos clásicamente. Evalúa el circuito, no un mecanismo para descubrir el óptimo. Para k marcados y q qubits, θ=asin(sqrt(k/2^q)) y P_ideal=sin²((2j+1)θ). La referencia uniforme es k/2^q: 50 % en N=3 y 3,125 % en N=4.</p>
+<p><img alt="Probabilidad de medir un óptimo frente al número de iteraciones. Cada curva usa el mismo circuito compilado para todos los perfiles." src="figuras/amplification.png" /></p>
+<h3>7.1. N=3: todas las probabilidades del barrido</h3>
+<p>P(medir un óptimo), en porcentaje. Las probabilidades no se condicionan a estados válidos.</p>
+<table>
+<thead>
+<tr>
+<th>j</th>
+<th>Ideal</th>
+<th>Leve</th>
+<th>Moderado</th>
+<th>Fuerte</th>
+<th>Térmico</th>
+<th>Uniforme</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>50,000000</td>
+<td>50,000000</td>
+<td>50,000000</td>
+<td>50,000000</td>
+<td>49,999995</td>
+<td>50,000000</td>
+</tr>
+<tr>
+<td>1</td>
+<td>50,000000</td>
+<td>50,000000</td>
+<td>50,000000</td>
+<td>50,000000</td>
+<td>49,963872</td>
+<td>50,000000</td>
+</tr>
+<tr>
+<td>2</td>
+<td>50,000000</td>
+<td>50,000000</td>
+<td>50,000000</td>
+<td>50,000000</td>
+<td>50,038345</td>
+<td>50,000000</td>
+</tr>
+<tr>
+<td>3</td>
+<td>50,000000</td>
+<td>50,000000</td>
+<td>50,000000</td>
+<td>50,000000</td>
+<td>49,964753</td>
+<td>50,000000</td>
+</tr>
+<tr>
+<td>4</td>
+<td>50,000000</td>
+<td>50,000000</td>
+<td>50,000000</td>
+<td>50,000000</td>
+<td>50,033619</td>
+<td>50,000000</td>
+</tr>
+</tbody>
+</table>
+<p>P(medir un índice inválido), en porcentaje, para los mismos circuitos.</p>
+<table>
+<thead>
+<tr>
+<th>j</th>
+<th>Ideal</th>
+<th>Leve</th>
+<th>Moderado</th>
+<th>Fuerte</th>
+<th>Térmico</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>25,000000</td>
+<td>25,000000</td>
+<td>25,000000</td>
+<td>25,000000</td>
+<td>24,983556</td>
+</tr>
+<tr>
+<td>1</td>
+<td>25,000000</td>
+<td>25,110681</td>
+<td>25,253605</td>
+<td>25,390231</td>
+<td>24,991403</td>
+</tr>
+<tr>
+<td>2</td>
+<td>25,000000</td>
+<td>25,098932</td>
+<td>25,176675</td>
+<td>25,124423</td>
+<td>25,209844</td>
+</tr>
+<tr>
+<td>3</td>
+<td>25,000000</td>
+<td>24,913487</td>
+<td>24,884572</td>
+<td>24,971375</td>
+<td>24,740387</td>
+</tr>
+<tr>
+<td>4</td>
+<td>25,000000</td>
+<td>24,922721</td>
+<td>24,920276</td>
+<td>24,991536</td>
+<td>24,617042</td>
+</tr>
+</tbody>
+</table>
+<p>Estructura del circuito, compartida entre perfiles dentro de cada fila.</p>
+<table>
+<thead>
+<tr>
+<th>j</th>
+<th>CX</th>
+<th>sx/x</th>
+<th>Rz virtual</th>
+<th>Profundidad</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>0</td>
+<td>3</td>
+<td>6</td>
+<td>3</td>
+</tr>
+<tr>
+<td>1</td>
+<td>12</td>
+<td>19</td>
+<td>37</td>
+<td>40</td>
+</tr>
+<tr>
+<td>2</td>
+<td>24</td>
+<td>35</td>
+<td>68</td>
+<td>75</td>
+</tr>
+<tr>
+<td>3</td>
+<td>36</td>
+<td>51</td>
+<td>99</td>
+<td>110</td>
+</tr>
+<tr>
+<td>4</td>
+<td>48</td>
+<td>67</td>
+<td>130</td>
+<td>145</td>
+</tr>
+</tbody>
+</table>
+<h3>7.2. N=4: todas las probabilidades del barrido</h3>
+<p>P(medir un óptimo), en porcentaje. Las probabilidades no se condicionan a estados válidos.</p>
+<table>
+<thead>
+<tr>
+<th>j</th>
+<th>Ideal</th>
+<th>Leve</th>
+<th>Moderado</th>
+<th>Fuerte</th>
+<th>Térmico</th>
+<th>Uniforme</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>3,125000</td>
+<td>3,125000</td>
+<td>3,125000</td>
+<td>3,125000</td>
+<td>3,121917</td>
+<td>3,125000</td>
+</tr>
+<tr>
+<td>1</td>
+<td>25,830078</td>
+<td>14,821484</td>
+<td>6,061727</td>
+<td>3,169285</td>
+<td>5,219450</td>
+<td>3,125000</td>
+</tr>
+<tr>
+<td>2</td>
+<td>60,242462</td>
+<td>19,665517</td>
+<td>4,470310</td>
+<td>3,126387</td>
+<td>3,832341</td>
+<td>3,125000</td>
+</tr>
+<tr>
+<td>3</td>
+<td>89,693654</td>
+<td>17,427215</td>
+<td>3,549026</td>
+<td>3,125065</td>
+<td>3,266516</td>
+<td>3,125000</td>
+</tr>
+<tr>
+<td>4</td>
+<td>99,918232</td>
+<td>12,533267</td>
+<td>3,248162</td>
+<td>3,125004</td>
+<td>3,119148</td>
+<td>3,125000</td>
+</tr>
+<tr>
+<td>5</td>
+<td>85,963666</td>
+<td>8,184569</td>
+<td>3,162477</td>
+<td>3,125000</td>
+<td>3,082519</td>
+<td>3,125000</td>
+</tr>
+<tr>
+<td>6</td>
+<td>54,589200</td>
+<td>5,458341</td>
+<td>3,137504</td>
+<td>3,125000</td>
+<td>3,072629</td>
+<td>3,125000</td>
+</tr>
+</tbody>
+</table>
+<p>P(medir un índice inválido), en porcentaje, para los mismos circuitos.</p>
+<table>
+<thead>
+<tr>
+<th>j</th>
+<th>Ideal</th>
+<th>Leve</th>
+<th>Moderado</th>
+<th>Fuerte</th>
+<th>Térmico</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>25,000000</td>
+<td>25,000000</td>
+<td>25,000000</td>
+<td>25,000000</td>
+<td>24,983556</td>
+</tr>
+<tr>
+<td>1</td>
+<td>19,140625</td>
+<td>21,527555</td>
+<td>23,784592</td>
+<td>24,946031</td>
+<td>23,820585</td>
+</tr>
+<tr>
+<td>2</td>
+<td>10,260010</td>
+<td>19,879192</td>
+<td>24,292683</td>
+<td>24,995875</td>
+<td>23,966436</td>
+</tr>
+<tr>
+<td>3</td>
+<td>2,659702</td>
+<td>20,137381</td>
+<td>24,671567</td>
+<td>24,999702</td>
+<td>24,094539</td>
+</tr>
+<tr>
+<td>4</td>
+<td>0,021102</td>
+<td>21,365999</td>
+<td>24,854294</td>
+<td>24,999980</td>
+<td>24,146882</td>
+</tr>
+<tr>
+<td>5</td>
+<td>3,622280</td>
+<td>22,593958</td>
+<td>24,934375</td>
+<td>24,999999</td>
+<td>24,167757</td>
+</tr>
+<tr>
+<td>6</td>
+<td>11,718916</td>
+<td>23,481829</td>
+<td>24,970226</td>
+<td>25,000000</td>
+<td>24,176649</td>
+</tr>
+</tbody>
+</table>
+<p>Estructura del circuito, compartida entre perfiles dentro de cada fila.</p>
+<table>
+<thead>
+<tr>
+<th>j</th>
+<th>CX</th>
+<th>sx/x</th>
+<th>Rz virtual</th>
+<th>Profundidad</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>0</td>
+<td>5</td>
+<td>10</td>
+<td>3</td>
+</tr>
+<tr>
+<td>1</td>
+<td>66</td>
+<td>53</td>
+<td>160</td>
+<td>194</td>
+</tr>
+<tr>
+<td>2</td>
+<td>132</td>
+<td>101</td>
+<td>310</td>
+<td>375</td>
+</tr>
+<tr>
+<td>3</td>
+<td>198</td>
+<td>149</td>
+<td>460</td>
+<td>556</td>
+</tr>
+<tr>
+<td>4</td>
+<td>264</td>
+<td>197</td>
+<td>610</td>
+<td>737</td>
+</tr>
+<tr>
+<td>5</td>
+<td>330</td>
+<td>245</td>
+<td>760</td>
+<td>918</td>
+</tr>
+<tr>
+<td>6</td>
+<td>396</td>
+<td>293</td>
+<td>910</td>
+<td>1099</td>
+</tr>
+</tbody>
+</table>
+<h3>7.3. Mejor número de iteraciones dentro del diagnóstico</h3>
+<table>
+<thead>
+<tr>
+<th>N</th>
+<th>Perfil</th>
+<th>Mejor j observado</th>
+<th>P óptimo</th>
+<th>CX</th>
+<th>Profundidad</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>3</td>
+<td>Ideal</td>
+<td>0</td>
+<td>50,000000 %</td>
+<td>0</td>
+<td>3</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Leve</td>
+<td>0</td>
+<td>50,000000 %</td>
+<td>0</td>
+<td>3</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Moderado</td>
+<td>0</td>
+<td>50,000000 %</td>
+<td>0</td>
+<td>3</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Fuerte</td>
+<td>0</td>
+<td>50,000000 %</td>
+<td>0</td>
+<td>3</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Moderado + T1/T2</td>
+<td>2</td>
+<td>50,038345 %</td>
+<td>24</td>
+<td>75</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Ideal</td>
+<td>4</td>
+<td>99,918232 %</td>
+<td>264</td>
+<td>737</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Leve</td>
+<td>2</td>
+<td>19,665517 %</td>
+<td>132</td>
+<td>375</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Moderado</td>
+<td>1</td>
+<td>6,061727 %</td>
+<td>66</td>
+<td>194</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Fuerte</td>
+<td>1</td>
+<td>3,169285 %</td>
+<td>66</td>
+<td>194</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Moderado + T1/T2</td>
+<td>1</td>
+<td>5,219450 %</td>
+<td>66</td>
+<td>194</td>
+</tr>
+</tbody>
+</table>
+<p>En N=4, con ruido leve, j=2 da 19,6655 % frente a 12,5333 % con j=4. Con ruido moderado, j=1 da 6,0617 % frente a 3,2482 % con j=4. Son mejoras del circuito diagnóstico a marcado fijo; todavía no prueban que limitar globalmente j mejore la búsqueda BBHT, cuyo conjunto marcado cambia con cada umbral.</p>
+<h3>7.4. Qué parte puede recuperar la corrección de lectura</h3>
+<table>
+<thead>
+<tr>
+<th>Perfil N4, j=4</th>
+<th>Tras puertas, antes de lectura</th>
+<th>Tras lectura</th>
+<th>Diferencia en pp</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ideal</td>
+<td>99,918232 %</td>
+<td>99,918232 %</td>
+<td>0,000000</td>
+</tr>
+<tr>
+<td>Leve</td>
+<td>12,987298 %</td>
+<td>12,533267 %</td>
+<td>0,454031</td>
+</tr>
+<tr>
+<td>Moderado</td>
+<td>3,262063 %</td>
+<td>3,248162 %</td>
+<td>0,013901</td>
+</tr>
+<tr>
+<td>Fuerte</td>
+<td>3,125004 %</td>
+<td>3,125004 %</td>
+<td>0,000000</td>
+</tr>
+<tr>
+<td>Moderado + T1/T2</td>
+<td>3,120469 %</td>
+<td>3,119148 %</td>
+<td>0,001321</td>
+</tr>
+</tbody>
+</table>
+<p>Estos valores proceden de las distribuciones ya guardadas, no de una mitigación de lectura implementada. Con ruido leve, eliminar idealmente sólo el canal de lectura llevaría de 12,5333 % a 12,9873 %, muy lejos del 99,9182 % ideal. En este circuito la mayor pérdida está presente antes de leer, lo que justifica priorizar puertas y profundidad. Una calibración real finita añade incertidumbre y no garantiza recuperar exactamente esta distribución previa.</p>
+<h2>8. Experimento adicional de compilación optimizada</h2>
+<p>Se comparan niveles de compilación 0 y 3 sobre N=4, manteniendo el circuito lógico, la base rz/sx/x/cx, la semilla del compilador 42 y los perfiles anteriores. La campaña principal de la sección 6 permanece intacta. La compilación puede eliminar o combinar puertas; su beneficio se evalúa con las probabilidades y la búsqueda completa, no sólo con el número de CX. [S1]</p>
+<h3>8.1. Método, controles y validación de la nueva campaña</h3>
+<p>Se ejecutaron 100 semillas por cada combinación de dos niveles y cinco perfiles: 1.000 búsquedas adicionales de N=4. El nivel 0 se volvió a ejecutar como control y reprodujo exactamente sus 500 registros completos de la campaña principal. No se cambió el presupuesto, el umbral, el número aleatorio de iteraciones ni el criterio de parada de BBHT. La precisión de síntesis se fijó a approximation_degree=1.0 para no introducir una aproximación deliberada.</p>
+<p>Se evaluaron además 50 circuitos diagnósticos: dos niveles × j=0…4 × cinco perfiles, marcando el índice óptimo conocido 23. Cada circuito compilado se verificó contra el Statevector ideal del circuito lógico, con diferencia de probabilidades inferior a 1e−10. Las 100 trazas ideales conservaron exactamente las mismas muestras, j, umbrales y consultas entre niveles. El canal de lectura y los modelos de ruido se reutilizaron sin modificar.</p>
+<p>La ejecución adicional completa tardó 6,840322 s. No se hizo una campaña de hardware ni se modificaron los resultados principales. SHA-256 del nuevo script: e707167f7d8828e30f8cd6c6cf225bba90d20b6184f86415eb5f1e7872209f33.</p>
+<h3>8.2. Mismo circuito lógico N=4, j=4: antes y después de optimizar</h3>
+<table>
+<thead>
+<tr>
+<th>Métrica de circuito</th>
+<th>Nivel 0</th>
+<th>Nivel 3</th>
+<th>Cambio relativo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Puertas CX</td>
+<td>264</td>
+<td>256</td>
+<td>-3,03 %</td>
+</tr>
+<tr>
+<td>Puertas sx/x</td>
+<td>197</td>
+<td>81</td>
+<td>-58,88 %</td>
+</tr>
+<tr>
+<td>Rz virtuales</td>
+<td>610</td>
+<td>334</td>
+<td>-45,25 %</td>
+</tr>
+<tr>
+<td>Profundidad</td>
+<td>737</td>
+<td>506</td>
+<td>-31,34 %</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>Perfil</th>
+<th>P óptimo nivel 0</th>
+<th>P óptimo nivel 3</th>
+<th>Cambio en pp</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ideal</td>
+<td>99,918232 %</td>
+<td>99,918232 %</td>
+<td>0,000000</td>
+</tr>
+<tr>
+<td>Leve</td>
+<td>12,533267 %</td>
+<td>13,784881 %</td>
+<td>1,251614</td>
+</tr>
+<tr>
+<td>Moderado</td>
+<td>3,248162 %</td>
+<td>3,304951 %</td>
+<td>0,056789</td>
+</tr>
+<tr>
+<td>Fuerte</td>
+<td>3,125004 %</td>
+<td>3,125009 %</td>
+<td>0,000006</td>
+</tr>
+<tr>
+<td>Térmico</td>
+<td>3,119148 %</td>
+<td>3,154754 %</td>
+<td>0,035606</td>
+</tr>
+</tbody>
+</table>
+<p>En ruido leve, la probabilidad del óptimo mejora de 12,5333 % a 13,7849 %: +1,2516 puntos porcentuales. La profundidad cae 31,34 %, pero las CX sólo bajan 3,03 %. Optimizar la compilación ayuda en este diagnóstico y reduce recursos; no recupera el 99,9182 % ideal ni resuelve por sí sola el ruido.</p>
+<h3>8.3. Resultados completos de la búsqueda adaptativa adicional</h3>
+<table>
+<thead>
+<tr>
+<th>Perfil</th>
+<th>Nivel</th>
+<th>Óptimos</th>
+<th>IC Wilson 95 %</th>
+<th>Gap medio</th>
+<th>Gap relativo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ideal</td>
+<td>0</td>
+<td>100/100</td>
+<td>96,30–100,00 %</td>
+<td>0,000</td>
+<td>0,0000 %</td>
+</tr>
+<tr>
+<td>Ideal</td>
+<td>3</td>
+<td>100/100</td>
+<td>96,30–100,00 %</td>
+<td>0,000</td>
+<td>0,0000 %</td>
+</tr>
+<tr>
+<td>Leve</td>
+<td>0</td>
+<td>100/100</td>
+<td>96,30–100,00 %</td>
+<td>0,000</td>
+<td>0,0000 %</td>
+</tr>
+<tr>
+<td>Leve</td>
+<td>3</td>
+<td>100/100</td>
+<td>96,30–100,00 %</td>
+<td>0,000</td>
+<td>0,0000 %</td>
+</tr>
+<tr>
+<td>Moderado</td>
+<td>0</td>
+<td>94/100</td>
+<td>87,52–97,22 %</td>
+<td>0,600</td>
+<td>0,2970 %</td>
+</tr>
+<tr>
+<td>Moderado</td>
+<td>3</td>
+<td>94/100</td>
+<td>87,52–97,22 %</td>
+<td>0,600</td>
+<td>0,2970 %</td>
+</tr>
+<tr>
+<td>Fuerte</td>
+<td>0</td>
+<td>88/100</td>
+<td>80,19–93,00 %</td>
+<td>1,280</td>
+<td>0,6337 %</td>
+</tr>
+<tr>
+<td>Fuerte</td>
+<td>3</td>
+<td>88/100</td>
+<td>80,19–93,00 %</td>
+<td>1,280</td>
+<td>0,6337 %</td>
+</tr>
+<tr>
+<td>Térmico</td>
+<td>0</td>
+<td>90/100</td>
+<td>82,56–94,48 %</td>
+<td>1,000</td>
+<td>0,4950 %</td>
+</tr>
+<tr>
+<td>Térmico</td>
+<td>3</td>
+<td>92/100</td>
+<td>85,00–95,89 %</td>
+<td>0,800</td>
+<td>0,3960 %</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>Perfil</th>
+<th>Nivel</th>
+<th>C medio</th>
+<th>Oráculos</th>
+<th>Muestras = circuitos</th>
+<th>Inválidos</th>
+<th>1.er óptimo C</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ideal</td>
+<td>0</td>
+<td>140,85</td>
+<td>122,24</td>
+<td>70,91</td>
+<td>24,48 %</td>
+<td>7,89</td>
+</tr>
+<tr>
+<td>Ideal</td>
+<td>3</td>
+<td>140,85</td>
+<td>122,24</td>
+<td>70,91</td>
+<td>24,48 %</td>
+<td>7,89</td>
+</tr>
+<tr>
+<td>Leve</td>
+<td>0</td>
+<td>141,02</td>
+<td>121,38</td>
+<td>71,92</td>
+<td>24,54 %</td>
+<td>16,70</td>
+</tr>
+<tr>
+<td>Leve</td>
+<td>3</td>
+<td>141,00</td>
+<td>121,45</td>
+<td>71,73</td>
+<td>24,56 %</td>
+<td>16,10</td>
+</tr>
+<tr>
+<td>Moderado</td>
+<td>0</td>
+<td>141,00</td>
+<td>120,74</td>
+<td>72,82</td>
+<td>25,16 %</td>
+<td>39,88</td>
+</tr>
+<tr>
+<td>Moderado</td>
+<td>3</td>
+<td>140,93</td>
+<td>120,43</td>
+<td>72,78</td>
+<td>25,06 %</td>
+<td>39,73</td>
+</tr>
+<tr>
+<td>Fuerte</td>
+<td>0</td>
+<td>140,89</td>
+<td>120,71</td>
+<td>72,71</td>
+<td>25,42 %</td>
+<td>45,09</td>
+</tr>
+<tr>
+<td>Fuerte</td>
+<td>3</td>
+<td>140,89</td>
+<td>120,71</td>
+<td>72,71</td>
+<td>25,42 %</td>
+<td>45,09</td>
+</tr>
+<tr>
+<td>Térmico</td>
+<td>0</td>
+<td>140,94</td>
+<td>120,74</td>
+<td>73,04</td>
+<td>24,96 %</td>
+<td>41,47</td>
+</tr>
+<tr>
+<td>Térmico</td>
+<td>3</td>
+<td>140,89</td>
+<td>120,55</td>
+<td>72,85</td>
+<td>24,85 %</td>
+<td>41,87</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>Perfil</th>
+<th>Nivel</th>
+<th>CX medios</th>
+<th>sx/x medios</th>
+<th>Rz medios</th>
+<th>Σ profundidad</th>
+<th>Máx. prof. medio</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ideal</td>
+<td>0</td>
+<td>8067,84</td>
+<td>6222,07</td>
+<td>15361,43</td>
+<td>19742,20</td>
+<td>635,03</td>
+</tr>
+<tr>
+<td>Ideal</td>
+<td>3</td>
+<td>4498,54</td>
+<td>1866,35</td>
+<td>6206,91</td>
+<td>9543,72</td>
+<td>310,25</td>
+</tr>
+<tr>
+<td>Leve</td>
+<td>0</td>
+<td>8011,08</td>
+<td>6185,84</td>
+<td>15485,51</td>
+<td>19795,46</td>
+<td>653,20</td>
+</tr>
+<tr>
+<td>Leve</td>
+<td>3</td>
+<td>4657,84</td>
+<td>1907,65</td>
+<td>6429,38</td>
+<td>9832,08</td>
+<td>350,70</td>
+</tr>
+<tr>
+<td>Moderado</td>
+<td>0</td>
+<td>7968,84</td>
+<td>6159,62</td>
+<td>16211,90</td>
+<td>20372,09</td>
+<td>690,57</td>
+</tr>
+<tr>
+<td>Moderado</td>
+<td>3</td>
+<td>5341,76</td>
+<td>2077,64</td>
+<td>7342,51</td>
+<td>11080,19</td>
+<td>424,59</td>
+</tr>
+<tr>
+<td>Fuerte</td>
+<td>0</td>
+<td>7966,86</td>
+<td>6157,63</td>
+<td>16491,58</td>
+<td>20607,29</td>
+<td>697,08</td>
+</tr>
+<tr>
+<td>Fuerte</td>
+<td>3</td>
+<td>5621,34</td>
+<td>2145,54</td>
+<td>7711,47</td>
+<td>11597,26</td>
+<td>435,06</td>
+</tr>
+<tr>
+<td>Térmico</td>
+<td>0</td>
+<td>7968,84</td>
+<td>6160,72</td>
+<td>16365,16</td>
+<td>20503,09</td>
+<td>694,32</td>
+</tr>
+<tr>
+<td>Térmico</td>
+<td>3</td>
+<td>5451,06</td>
+<td>2104,16</td>
+<td>7486,06</td>
+<td>11282,22</td>
+<td>429,30</td>
+</tr>
+</tbody>
+</table>
+<p>Con ruido leve, las CX totales medias de la búsqueda pasan de 8.011,08 a 4.657,84 y ambos niveles mantienen 100/100. El ahorro global es mayor que el del circuito diagnóstico porque los circuitos adaptativos cambian con el conjunto marcado, incluidos los pasos posteriores a alcanzar el óptimo. No equivale a ahorrar la construcción real de un oráculo reversible del QAP.</p>
+<h3>8.4. Comparación por pares de semillas</h3>
+<table>
+<thead>
+<tr>
+<th>Perfil</th>
+<th>Ambos aciertan</th>
+<th>Ambos fallan</th>
+<th>Sólo nivel 3</th>
+<th>Sólo nivel 0</th>
+<th>Diferencia pp</th>
+<th>p exacto</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ideal</td>
+<td>100</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1,000</td>
+</tr>
+<tr>
+<td>Leve</td>
+<td>100</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1,000</td>
+</tr>
+<tr>
+<td>Moderado</td>
+<td>92</td>
+<td>4</td>
+<td>2</td>
+<td>2</td>
+<td>0</td>
+<td>1,000</td>
+</tr>
+<tr>
+<td>Fuerte</td>
+<td>88</td>
+<td>12</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1,000</td>
+</tr>
+<tr>
+<td>Térmico</td>
+<td>90</td>
+<td>8</td>
+<td>2</td>
+<td>0</td>
+<td>2</td>
+<td>0,500</td>
+</tr>
+</tbody>
+</table>
+<p>Con relajación térmica se observan 92/100 en nivel 3 y 90/100 en nivel 0, pero sólo hay dos pares discordantes favorables: McNemar exacto bilateral p=0,5. No hay evidencia estadística suficiente aquí para afirmar una mejora general del éxito. En moderado hay dos semillas que mejoran y dos que empeoran; la tasa final sigue en 94/100. Los pvalores son exploratorios y no se ajustaron por comparar varios perfiles.</p>
+<h3>8.5. Barrido completo de probabilidad del óptimo a ambos niveles</h3>
+<p>Nivel 0: P(medir el óptimo), en porcentaje; marcado fijo [23], j=0…4.</p>
+<table>
+<thead>
+<tr>
+<th>j</th>
+<th>Ideal</th>
+<th>Leve</th>
+<th>Moderado</th>
+<th>Fuerte</th>
+<th>Térmico</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>3,125000</td>
+<td>3,125000</td>
+<td>3,125000</td>
+<td>3,125000</td>
+<td>3,121917</td>
+</tr>
+<tr>
+<td>1</td>
+<td>25,830078</td>
+<td>14,821484</td>
+<td>6,061727</td>
+<td>3,169285</td>
+<td>5,219450</td>
+</tr>
+<tr>
+<td>2</td>
+<td>60,242462</td>
+<td>19,665517</td>
+<td>4,470310</td>
+<td>3,126387</td>
+<td>3,832341</td>
+</tr>
+<tr>
+<td>3</td>
+<td>89,693654</td>
+<td>17,427215</td>
+<td>3,549026</td>
+<td>3,125065</td>
+<td>3,266516</td>
+</tr>
+<tr>
+<td>4</td>
+<td>99,918232</td>
+<td>12,533267</td>
+<td>3,248162</td>
+<td>3,125004</td>
+<td>3,119148</td>
+</tr>
+</tbody>
+</table>
+<p>Nivel 3: P(medir el óptimo), en porcentaje; marcado fijo [23], j=0…4.</p>
+<table>
+<thead>
+<tr>
+<th>j</th>
+<th>Ideal</th>
+<th>Leve</th>
+<th>Moderado</th>
+<th>Fuerte</th>
+<th>Térmico</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>3,125000</td>
+<td>3,125000</td>
+<td>3,125000</td>
+<td>3,125000</td>
+<td>3,121917</td>
+</tr>
+<tr>
+<td>1</td>
+<td>25,830078</td>
+<td>15,249801</td>
+<td>6,486011</td>
+<td>3,184983</td>
+<td>5,573420</td>
+</tr>
+<tr>
+<td>2</td>
+<td>60,242462</td>
+<td>20,832764</td>
+<td>4,839983</td>
+<td>3,127249</td>
+<td>4,071280</td>
+</tr>
+<tr>
+<td>3</td>
+<td>89,693654</td>
+<td>18,907660</td>
+<td>3,712468</td>
+<td>3,125130</td>
+<td>3,358451</td>
+</tr>
+<tr>
+<td>4</td>
+<td>99,918232</td>
+<td>13,784881</td>
+<td>3,304951</td>
+<td>3,125009</td>
+<td>3,154754</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>Nivel</th>
+<th>j</th>
+<th>CX</th>
+<th>sx/x</th>
+<th>Rz</th>
+<th>Profundidad</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>5</td>
+<td>10</td>
+<td>3</td>
+</tr>
+<tr>
+<td>0</td>
+<td>1</td>
+<td>66</td>
+<td>53</td>
+<td>160</td>
+<td>194</td>
+</tr>
+<tr>
+<td>0</td>
+<td>2</td>
+<td>132</td>
+<td>101</td>
+<td>310</td>
+<td>375</td>
+</tr>
+<tr>
+<td>0</td>
+<td>3</td>
+<td>198</td>
+<td>149</td>
+<td>460</td>
+<td>556</td>
+</tr>
+<tr>
+<td>0</td>
+<td>4</td>
+<td>264</td>
+<td>197</td>
+<td>610</td>
+<td>737</td>
+</tr>
+<tr>
+<td>3</td>
+<td>0</td>
+<td>0</td>
+<td>5</td>
+<td>10</td>
+<td>3</td>
+</tr>
+<tr>
+<td>3</td>
+<td>1</td>
+<td>64</td>
+<td>24</td>
+<td>91</td>
+<td>131</td>
+</tr>
+<tr>
+<td>3</td>
+<td>2</td>
+<td>128</td>
+<td>43</td>
+<td>172</td>
+<td>256</td>
+</tr>
+<tr>
+<td>3</td>
+<td>3</td>
+<td>192</td>
+<td>62</td>
+<td>253</td>
+<td>381</td>
+</tr>
+<tr>
+<td>3</td>
+<td>4</td>
+<td>256</td>
+<td>81</td>
+<td>334</td>
+<td>506</td>
+</tr>
+</tbody>
+</table>
+<p>circuits.csv y la hoja Mit_circuits conservan también las probabilidades de padding, las probabilidades antes de lectura y los hashes para las 50 filas. Las hojas Mit_runs y Mit_steps contienen todas las ejecuciones y pasos de esta campaña. La comparación de j fijo se separa de la búsqueda completa para no confundir optimizar un circuito con demostrar una mejor política adaptativa.</p>
+<h2>9. Soluciones y recomendaciones ordenadas por prioridad</h2>
+<table>
+<thead>
+<tr>
+<th>Prioridad</th>
+<th>Acción</th>
+<th>Evidencia y condición</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Reducir puertas y profundidad</td>
+<td>Comparar niveles 0, 1, 2 y 3, conservar equivalencia ideal y elegir por calidad bajo ruido; el nivel mayor no garantiza la mejor solución. La comparación 0/3 está documentada en la sección 8.</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Adaptar las iteraciones al ruido</td>
+<td>El barrido a marcado fijo favorece j=2 con ruido leve y j=1 con moderado. Validar después una política BBHT con menos iteraciones y más reinicios bajo el mismo presupuesto.</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Compilar para un backend concreto</td>
+<td>Usar sus puertas nativas, topología, layout, errores y tiempos medidos; minimizar SWAP y puertas de dos qubits. Es una evaluación pendiente, no una propiedad de la simulación all-to-all.</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Mitigar error de lectura con calibración</td>
+<td>Para histogramas de muchos shots, evaluar M3 y reportar incertidumbre y costo de calibración. No corrige automáticamente una lectura individual que determina el siguiente paso BBHT.</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Probar DD o twirling cuando corresponda</td>
+<td>DD si existen tiempos ociosos y errores compatibles; twirling si hay ruido coherente relevante. El modelo principal no representa esas fuentes de error.</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Reservar ZNE para estimación adecuada</td>
+<td>Evaluar observables o probabilidades estimadas como un estudio separado, con presupuesto extra. No aplicar opciones de Estimator como si corrigieran las muestras individuales de este algoritmo.</td>
+</tr>
+</tbody>
+</table>
+<h3>9.1. Cambios que tienen prioridad para este prototipo</h3>
+<p>Mantener como referencia la versión original y comparar cada modificación con las mismas matrices y semillas. Para reducir profundidad, optimizar la síntesis del oráculo y la difusión y medir el conteo de operaciones nativas. La tabla clásica de costos sigue siendo un costo factorial fuera del circuito; resolverla con aritmética reversible requeriría un diseño distinto y nuevas mediciones. [S1]</p>
+<p>Una política con menor j máximo puede reducir el daño acumulado, pero cambia el algoritmo y su comportamiento. El ajuste debe depender del ruido y de la evolución de umbrales, sin acceder al óptimo verdadero. Separar matrices y semillas de ajuste de un conjunto nuevo de validación. Comparar éxito, gap, consultas, total de puertas y shots incluyendo los reintentos. Es una propuesta a evaluar, no una mejora general ya demostrada.</p>
+<h3>9.2. Alcance real de la mitigación de lectura</h3>
+<p>M3 corrige estadísticamente distribuciones de resultados usando calibraciones. Puede producir cuasiprobabilidades; proyectarlas a probabilidades válidas afecta el análisis del error. No identifica qué bit fue erróneo en una medida individual. Para incorporarlo a este BBHT habría que definir un procedimiento por lotes, medir su costo y validar el algoritmo modificado. La inversión del canal de lectura no deshace errores ocurridos durante las puertas. [S3]</p>
+<h3>9.3. Técnicas que no son una solución automática</h3>
+<p>Dynamical decoupling inserta pulsos en periodos ociosos para suprimir determinadas interacciones. Si no hay tiempos ociosos útiles, las puertas añadidas pueden empeorar el resultado. Como el modelo térmico probado sólo aplica relajación durante las puertas y no simula un schedule con esperas, aquí no existe evidencia de beneficio de DD. [S2]</p>
+<p>Pauli twirling transforma el comportamiento de errores, especialmente coherentes, mediante circuitos aleatorizados equivalentes idealmente. Los canales despolarizantes de esta prueba ya son canales de Pauli: no hay motivo para esperar que twirling por sí solo elimine ese ruido; sus puertas extra también cuestan. Esta conclusión se refiere a estos perfiles, no a un chip con sobre-rotaciones coherentes. [S2]</p>
+<p>ZNE y los niveles de resiliencia de Estimator reconstruyen estimaciones a partir de varios circuitos y niveles de ruido, con costo adicional y supuestos de extrapolación. El flujo actual produce una muestra por paso adaptativo. No basta con activar resilience_level=2 en un Sampler ni trasladar esas opciones al simulador actual. Se tendría que definir y evaluar otra estrategia de estimación. [S4]</p>
+<p>Aumentar shots reduce la incertidumbre de un histograma, pero no elimina su sesgo de ruido. Escoger el mejor costo entre varios shots por paso modifica la búsqueda y consume recursos extra; esa mejora no se puede atribuir a corrección de errores. La corrección cuántica de errores requeriría una arquitectura lógica y recursos adicionales, fuera del circuito físico estudiado.</p>
+<h2>10. Plan de validación de las siguientes mejoras</h2>
+<table>
+<thead>
+<tr>
+<th>Ensayo</th>
+<th>Qué mantener fijo</th>
+<th>Qué medir para decidir</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Compilación y síntesis</td>
+<td>Mismas instancias, perfiles, semillas y presupuesto</td>
+<td>Equivalencia ideal, éxito emparejado, gap, profundidad, CX y tiempo de compilación.</td>
+</tr>
+<tr>
+<td>Política de j y reinicios</td>
+<td>Presupuesto total y acceso al oráculo; sin conocer el óptimo al decidir</td>
+<td>Éxito y costo total en instancias nuevas; no sólo el mejor j del diagnóstico.</td>
+</tr>
+<tr>
+<td>Hardware calibrado o modelo de backend</td>
+<td>Mismo problema lógico, fecha de calibración y cuotas de ejecución</td>
+<td>Layout, SWAP, puertas nativas, T1/T2, lectura y resultados con y sin cada cambio.</td>
+</tr>
+<tr>
+<td>Lectura mitigada por lotes</td>
+<td>Shots totales incluyendo calibración</td>
+<td>Error de distribución, IC y éxito del algoritmo modificado; reportar costo clásico y cuántico.</td>
+</tr>
+<tr>
+<td>Ablación DD/twirling/ZNE</td>
+<td>Activar una técnica por vez y conservar un control</td>
+<td>Mejora reproducible frente a sobrecosto; no inferir efecto a partir de sumar varias técnicas.</td>
+</tr>
+<tr>
+<td>Escalado a N5/N6</td>
+<td>Método, recursos y límite temporal declarados</td>
+<td>Campaña completa, memoria, tiempo y semillas; separar ensayos parciales de resultados finales.</td>
+</tr>
+</tbody>
+</table>
+<p>Una mejora se acepta si conserva el ideal y muestra una ventaja de calidad o recursos en el escenario declarado, con su incertidumbre. No basta con que sus intervalos marginales parezcan distintos. Para comparar éxitos con las mismas semillas conviene analizar los pares discordantes y luego repetir en más instancias independientes. El ajuste sobre esta única N=4 no valida una política general para QAP.</p>
+<h2>11. Verificación, tiempos y límites de la evidencia</h2>
+<table>
+<thead>
+<tr>
+<th>Verificación de la campaña principal</th>
+<th>Resultado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Suite automatizada</td>
+<td>30 pruebas aprobadas en 1,11 s</td>
+</tr>
+<tr>
+<td>Dependencias</td>
+<td>pip check sin requisitos rotos</td>
+</tr>
+<tr>
+<td>Original y aplicación</td>
+<td>Sin cambios en núcleo original, API, datos.js ni interfaz</td>
+</tr>
+<tr>
+<td>Probabilidades ideales</td>
+<td>Statevector y fórmula analítica, tolerancia declarada 1e−12 en los tests</td>
+</tr>
+<tr>
+<td>Canal de lectura</td>
+<td>Transformación explícita comparada con 60.000 shots de Aer</td>
+</tr>
+<tr>
+<td>Relajación térmica</td>
+<td>Comparación analítica con decaimiento del estado excitado</td>
+</tr>
+<tr>
+<td>Semántica del algoritmo</td>
+<td>Tres trazas ideales equivalentes al original; presupuesto, padding y marcados vacíos</td>
+</tr>
+<tr>
+<td>Repetibilidad</td>
+<td>Igualdad exacta de runs, summary, sweep, distributions y bytes de steps.csv</td>
+</tr>
+<tr>
+<td>Consistencia</td>
+<td>2.000 filas, 61.225 pasos y 337 distribuciones auditados</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>Tiempo de la campaña principal</th>
+<th>Segundos</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Compilación</td>
+<td>0,357006</td>
+</tr>
+<tr>
+<td>Simulación Aer</td>
+<td>2,359499</td>
+</tr>
+<tr>
+<td>Benchmark, sin render del gráfico</td>
+<td>3,642316</td>
+</tr>
+</tbody>
+</table>
+<p>La caché explica el costo bajo de repetir muchas semillas: una distribución calculada se reutiliza sin alterar el proceso de muestreo. El primer perfil paga compilación que después se comparte. Por eso los tiempos por perfil no miden una ventaja física y no se deben comparar con una QPU. El tiempo total incluye también trabajo clásico del benchmark, además de los tiempos parciales anteriores.</p>
+<p>N=5: un ensayo de una semilla y cinco perfiles con barridos tomó 87,998 s. La extensión de 100 semillas se detuvo a 120,010 s: había terminado el perfil ideal N5 en 11,18 s, pero no el leve. No hay una campaña N5 completa; no se publican porcentajes parciales como resultados de robustez. N=6 no se ejecutó. El recibo y el log se incluyen en el paquete.</p>
+<p>Las principales limitaciones son: una sola instancia fija por tamaño; 100 semillas; oráculo de fase construido con costos previamente enumerados; conectividad ideal sin routing; errores sintéticos iguales entre qubits; y ausencia de crosstalk, espera ociosa y calibración real. Las conclusiones se circunscriben a esta evidencia.</p>
+<h2>12. Cómo reproducir los resultados</h2>
+<p>El paquete contiene el núcleo original, el benchmark y las pruebas en codigo/. Las dependencias de simulación están fijadas en requirements-noise.txt; evidencia/original/environment.txt conserva las transitivas de la ejecución. La compilación de nuevas versiones puede cambiar los circuitos: usar las versiones y la semilla indicadas para reproducir estos valores.</p>
+<pre><code class="language-sh">cd codigo
+python3 -m venv .venv-noise
+.venv-noise/bin/python -m pip install -r requirements-noise.txt
+.venv-noise/bin/python -m pytest -q test_grover.py test_grover_noise.py
+.venv-noise/bin/python qiskit_grover_noise.py \
+  --sizes 3 4 --repetitions 100 --seed-start 42 --thermal \
+  --output resultados_reproducidos
+</code></pre>
+<p>En Windows, usar .venv-noise\Scripts\python.exe. El parámetro opcional --reference-script RUTA verifica el SHA-256 del núcleo recibido. Los resultados nuevos se escriben en otra carpeta para preservar los datos entregados. El comando exacto de la ejecución original está también en evidencia/original/REPORT.md.</p>
+<p>Para la compilación optimizada, seguir el comando exacto de evidencia/mitigation/README.md y sus requisitos. Es una segunda campaña, con archivos, resultados y hashes propios; no se mezclan sus cifras con el baseline de nivel 0.</p>
+<h2>13. Contenido del Excel y del paquete de evidencia</h2>
+<table>
+<thead>
+<tr>
+<th>Archivo o tabla</th>
+<th>Contenido</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>DATOS_RUIDO_GROVER.xlsx</td>
+<td>Tablas legibles y registros completos con filtros y cabeceras fijas.</td>
+</tr>
+<tr>
+<td>LEEME y Diccionario</td>
+<td>Convenciones, denominadores, alcance y significado de columnas.</td>
+</tr>
+<tr>
+<td>Perfiles, Metadatos, Matrices, Costos</td>
+<td>Parámetros, versiones, entrada exacta y las 30 asignaciones enumeradas.</td>
+</tr>
+<tr>
+<td>Resumen</td>
+<td>Los 20 grupos de 100 ejecuciones con todos los campos originales.</td>
+</tr>
+<tr>
+<td>Ejecuciones</td>
+<td>2.000 filas completas: 1.000 Grover y 1.000 controles.</td>
+</tr>
+<tr>
+<td>Pasos</td>
+<td>61.225 filas, incluida cada medición, j, umbral, costo de consultas y hash de circuito.</td>
+</tr>
+<tr>
+<td>Barrido</td>
+<td>60 registros: N3×5j×5perfiles + N4×7j×5perfiles.</td>
+</tr>
+<tr>
+<td>Distribuciones</td>
+<td>Todos los estados de las 337 distribuciones antes y después de lectura.</td>
+</tr>
+<tr>
+<td>Hojas Mit_*</td>
+<td>Datos completos de la segunda campaña de compilación optimizada.</td>
+</tr>
+<tr>
+<td>evidencia/original/</td>
+<td>CSV y JSON exactos, reporte inicial, validación, entorno y evidencia N5.</td>
+</tr>
+<tr>
+<td>codigo/</td>
+<td>Scripts, tests y requisitos para reproducir las campañas.</td>
+</tr>
+<tr>
+<td>MANIFIESTO_SHA256.json</td>
+<td>Hash SHA-256 de cada archivo del paquete para comprobar su integridad.</td>
+</tr>
+</tbody>
+</table>
+<p>Los archivos de tablas son el resultado de exportar los datos medidos; no se reconstruyeron observaciones a partir de porcentajes redondeados. Las columnas de probabilidades del Excel usan fracciones de 0 a 1, salvo que el nombre de un campo diga explícitamente porcentaje. El PDF usa porcentajes para facilitar la lectura.</p>
+<h2>14. Fuentes técnicas y trazabilidad</h2>
+<p>Fuentes oficiales consultadas el 25 de octubre de 2026. Sustentan la explicación de los métodos y sus condiciones; las cifras del experimento proceden de los archivos locales incluidos, no de estas páginas.</p>
+<p>[S1] IBM Quantum, etapas de transpilación: https://quantum.cloud.ibm.com/docs/en/guides/transpiler-stages</p>
+<p>[S2] IBM Quantum, supresión y mitigación de errores: https://quantum.cloud.ibm.com/docs/en/guides/error-mitigation-and-suppression-techniques</p>
+<p>[S3] Qiskit M3, mitigación del error de medición: https://qiskit.github.io/qiskit-addon-mthree/index.html</p>
+<p>[S4] IBM Quantum, gestión del ruido con Estimator: https://quantum.cloud.ibm.com/docs/en/guides/estimator-noise-management</p>
+<p>[S5] Qiskit Aer, construcción de modelos de ruido: https://qiskit.github.io/qiskit-aer/tutorials/3_building_noise_models.html</p>
+<p>[S6] Qiskit Aer, AerSimulator: https://qiskit.github.io/qiskit-aer/stubs/qiskit_aer.AerSimulator.html</p>
+<p>[S7] Qiskit Aer, canal despolarizante: https://qiskit.github.io/qiskit-aer/stubs/qiskit_aer.noise.depolarizing_error.html</p>
+<p>[S8] Qiskit Aer, relajación térmica: https://qiskit.github.io/qiskit-aer/stubs/qiskit_aer.noise.thermal_relaxation_error.html</p>
+<p>La documentación web de Aer consultada corresponde a 0.18.0; la campaña ejecutada y validada usa Aer 0.17.2. Las tablas de este informe se generan desde los JSON y CSV de esa ejecución. La maquetación del documento usa un entorno aparte y no modifica la simulación.</p></body></html>

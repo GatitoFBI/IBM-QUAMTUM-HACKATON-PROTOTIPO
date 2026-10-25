@@ -1,0 +1,6 @@
+profile,runs,both_success,both_failure,level3_only_success,level0_only_success,success_difference_pp,mcnemar_exact_two_sided_p
+ideal,100,100,0,0,0,0,1.0
+leve,100,100,0,0,0,0,1.0
+moderado,100,92,4,2,2,0,1.0
+fuerte,100,88,12,0,0,0,1.0
+moderado_termico,100,90,8,2,0,2,0.5

@@ -1,0 +1,21 @@
+{
+  "status": "passed",
+  "pdf_pages": 18,
+  "workbook_rows_verified_cell_by_cell": {
+    "Resumen": 20,
+    "Ejecuciones": 2000,
+    "Pasos": 61225,
+    "Barrido": 60,
+    "Mit_circuits": 50,
+    "Mit_paired": 5,
+    "Mit_runs": 1000,
+    "Mit_steps": 72238,
+    "Mit_summary": 10
+  },
+  "csv_numeric_tolerance": {
+    "relative": 2e-15,
+    "absolute": 1e-15
+  },
+  "source_files_copied_exactly": 19,
+  "draft_markers_absent": true
+}
