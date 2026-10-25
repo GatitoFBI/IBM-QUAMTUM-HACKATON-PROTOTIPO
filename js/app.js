@@ -478,21 +478,74 @@ function iterCalc() {
 $("iU").onchange = iterCalc; $("iJ").oninput = iterCalc;
 
 /* ---------------- Comparador ---------------- */
+const SUP = s => String(s).replace(/[0-9]/g, d => "⁰¹²³⁴⁵⁶⁷⁸⁹"[d]);
+const fmtN = x => x >= 1e9 ? (x / 1e9).toLocaleString("es", { maximumFractionDigits: 1 }) + " mil millones" : x >= 1e6 ? (x / 1e6).toLocaleString("es", { maximumFractionDigits: 1 }) + " millones" : Math.round(x).toLocaleString("es");
 function renderCompare() {
   $("cmpIntro").textContent = Q ? `Referencia: ${Q.repeticiones} ejecuciones por tamaño con Qiskit ${Q.qiskit} (semilla ${Q.semilla}, versión honesta sin parada anticipada), generadas el ${Q.generado}.` : "Sin datos de referencia de Qiskit: ejecuta qiskit_grover.py.";
-  if (Q) $("rtab").innerHTML = `<tr><th class="num">N</th><th class="num">Qubits</th><th class="num">N!</th><th class="num">Presupuesto</th><th class="num">Consultas</th><th class="num">Acierto</th><th class="num">t clásico</th><th class="num">t Grover simulado</th></tr>` +
-    Object.values(Q.instancias).map(i => { const q = i.runs.map(r => r.consultas); return `<tr><td class="num">${i.n}</td><td class="num">${i.qubits}</td><td class="num">${i.M}</td><td class="num">${i.presupuesto}</td><td class="num"><b>${mean(q).toFixed(0)}</b> ± ${sd(q).toFixed(0)}</td><td class="num ok">${i.runs.filter(r => r.optimo).length}/${i.runs.length}</td><td class="num">${(i.clasico_s * 1000).toFixed(2)} ms</td><td class="num">${mean(i.runs.map(r => r.tiempo_s)).toFixed(2)} s</td></tr>`; }).join("");
-  const W = 560, H = 300, pl = 54, pb = 34, ns = [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14], X = n => pl + (W - pl - 14) * (n - 3) / 11, Y = v => 12 + (H - pb - 12) * (1 - Math.log10(v) / 11);
-  let g = ""; for (let e = 0; e <= 11; e++) g += `<line x1="${pl}" x2="${W - 14}" y1="${Y(10 ** e)}" y2="${Y(10 ** e)}" stroke="var(--line)"/>${e % 2 ? "" : `<text x="${pl - 6}" y="${Y(10 ** e) + 3}" text-anchor="end" font-size="9" fill="var(--muted)">10^${e}</text>`}`;
-  ns.forEach(n => g += `<text x="${X(n)}" y="${H - 16}" text-anchor="middle" font-size="9" fill="var(--muted)">${n}</text>`);
-  g += `<text x="${(pl + W) / 2}" y="${H - 3}" text-anchor="middle" font-size="9" fill="var(--muted)">N (brigadas y zonas)</text>`;
-  const line = (f, c) => `<path d="M${ns.map(n => X(n) + "," + Y(f(n))).join(" L")}" fill="none" stroke="${c}" stroke-width="2.5"/>`;
-  g += line(n => G.fact(n), "var(--bad)") + line(n => G.presupuesto(G.fact(n)), "var(--qiskit)");
-  const cross = ns.find(n => G.presupuesto(G.fact(n)) < G.fact(n));
-  g += `<line x1="${X(cross)}" x2="${X(cross)}" y1="12" y2="${H - pb}" stroke="var(--otono)" stroke-dasharray="4 4"/><text x="${X(cross) + 4}" y="24" font-size="10" fill="var(--ink)" font-weight="600">desde N = ${cross}, Grover consulta menos</text>`;
-  if (Q) Object.values(Q.instancias).forEach(i => g += `<circle cx="${X(i.n)}" cy="${Y(mean(i.runs.map(r => r.consultas)))}" r="5" fill="var(--otono)" stroke="var(--surface)" stroke-width="1.5"/>`);
-  if (R) g += `<rect x="${X(R.n) - 5}" y="${Y(mean(R.runs.map(r => r.consultas))) - 5}" width="10" height="10" fill="var(--ink)" transform="rotate(45 ${X(R.n)} ${Y(mean(R.runs.map(r => r.consultas)))})"/>`;
-  $("logc").innerHTML = g;
+  const ns = [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14], NF = n => G.fact(n), BU = n => G.presupuesto(G.fact(n));
+  const cross = ns.find(n => BU(n) < NF(n)), inst = Q ? Object.values(Q.instancias) : [];
+  const tot = inst.flatMap(i => i.runs), okAll = tot.filter(r => r.optimo).length, maxI = inst[inst.length - 1];
+
+  // Datos clave
+  $("cmpKpis").innerHTML = [
+    ["Cruce", `N = <span class="cnt">${cross}</span>`, "desde aquí Grover consulta menos que la fuerza bruta"],
+    ["Con N = 14", `<span class="cnt">${Math.round(NF(14) / BU(14)).toLocaleString("es")}</span>×`, `menos consultas: ${fmtN(BU(14))} frente a ${fmtN(NF(14))}`],
+    ["Aciertos medidos", `<span class="cnt">${okAll}</span>/${tot.length}`, `ejecuciones con Qiskit que hallaron el óptimo`],
+    ["Qubits simulados", `hasta <span class="cnt">${maxI ? maxI.qubits : "—"}</span>`, maxI ? `N = ${maxI.n}; el QUBO one-hot necesitaría ${maxI.n * maxI.n}` : ""]]
+    .map(([t, v, s], i) => `<div class="tile" style="--i:${i}"><span class="tl">${t}</span><b class="big">${v}</b><span class="ts">${s}</span></div>`).join("");
+
+  // Filas de resultados con barra Grover vs N!
+  $("rtab").innerHTML = inst.map((i, k) => { const q = i.runs.map(r => r.consultas), qm = mean(q), mx = Math.max(qm, i.M), ok = i.runs.filter(r => r.optimo).length;
+    return `<div class="rr" style="--i:${k}"><div class="rh"><b class="rn">N = ${i.n}</b><span class="badge ${ok === i.runs.length ? "ok" : "o"}">${ok}/${i.runs.length} óptimos</span></div>
+      <div class="rbars"><div class="mbar q"><span>Grover</span><i style="--w:${(qm / mx * 100).toFixed(1)}%"></i><b>${qm.toFixed(0)} ± ${sd(q).toFixed(0)}</b></div>
+      <div class="mbar"><span>N!</span><i style="--w:${(i.M / mx * 100).toFixed(1)}%"></i><b>${i.M}</b></div></div>
+      <span class="ts">${i.qubits} qubits · presupuesto ${i.presupuesto} · clásico ${(i.clasico_s * 1000).toFixed(2)} ms · Grover simulado ${mean(i.runs.map(r => r.tiempo_s)).toFixed(2)} s</span></div>`; }).join("");
+
+  // ¿Cuántas veces menos consulta? (barras divergentes, escala log)
+  const RW = 420, RH = ns.length * 20 + 20, mid = 160, sc = 26;
+  let r = `<line x1="${mid}" x2="${mid}" y1="4" y2="${RH - 14}" stroke="var(--muted)" stroke-opacity=".6"/>`;
+  r += `<text x="${mid - 6}" y="${RH - 2}" text-anchor="end" font-size="9" fill="var(--muted)">← Grover consulta más</text><text x="${mid + 6}" y="${RH - 2}" font-size="9" fill="var(--muted)">Grover consulta menos →</text>`;
+  ns.forEach((n, k) => { const ratio = NF(n) / BU(n), l = Math.log10(ratio), y = 8 + k * 20, w = Math.abs(l) * sc, win = ratio >= 1;
+    r += `<text x="24" y="${y + 11}" font-size="10" fill="var(--ink)" text-anchor="end">${n}</text>`;
+    r += `<rect class="rbar" style="--i:${k}" x="${win ? mid : mid - w}" y="${y + 2}" width="${Math.max(2, w)}" height="12" rx="3" fill="var(${win ? "--ok" : "--otono"})" fill-opacity="${win ? .85 : .7}"/>`;
+    r += `<text x="${win ? mid + w + 5 : mid - w - 5}" y="${y + 11}" font-size="9" fill="var(--muted)" text-anchor="${win ? "start" : "end"}">${win ? `${ratio >= 100 ? Math.round(ratio).toLocaleString("es") : ratio.toLocaleString("es", { maximumFractionDigits: 1 })}× menos` : `${(1 / ratio).toLocaleString("es", { maximumFractionDigits: 1 })}× más`}</text>`; });
+  r += `<text x="4" y="11" font-size="9" fill="var(--muted)">N</text>`;
+  $("ratio").setAttribute("viewBox", `0 0 ${RW} ${RH}`); $("ratio").innerHTML = r;
+
+  // Gráfico principal: líneas que se dibujan, zona de ventaja y detalle al pasar el mouse
+  const W = 560, H = 320, pl = 54, pb = 38, X = n => pl + (W - pl - 16) * (n - 3) / 11, Y = v => 14 + (H - pb - 14) * (1 - Math.log10(v) / 11);
+  let g = "";
+  for (let e = 0; e <= 11; e++) g += `<line x1="${pl}" x2="${W - 16}" y1="${Y(10 ** e)}" y2="${Y(10 ** e)}" stroke="var(--line)" stroke-opacity=".7"/>${e % 2 ? "" : `<text x="${pl - 8}" y="${Y(10 ** e) + 4}" text-anchor="end" font-size="11" fill="var(--muted)">10${SUP(e)}</text>`}`;
+  ns.forEach(n => g += `<text x="${X(n)}" y="${H - 20}" text-anchor="middle" font-size="10" fill="var(--muted)">${n}</text>`);
+  g += `<text x="${(pl + W) / 2}" y="${H - 4}" text-anchor="middle" font-size="10" fill="var(--muted)">N (brigadas y zonas)</text>`;
+  const pts = f => ns.map(n => [X(n), Y(f(n))]), pN = pts(NF), pB = pts(BU), ci = ns.indexOf(cross);
+  // zona de ventaja: entre N! (arriba) y el presupuesto (abajo) desde el cruce
+  const zone = [...pN.slice(ci - 1), ...pB.slice(ci - 1).reverse()];
+  g += `<polygon class="zone" points="${zone.map(p => p.join(",")).join(" ")}" fill="var(--ok)" fill-opacity=".12"/>`;
+  g += `<text class="zone" x="${X(11)}" y="${Y(1e7)}" font-size="11" font-weight="600" fill="var(--ok)" text-anchor="middle">zona de ventaja de Grover</text>`;
+  const path = (p, c, cls) => `<path class="ln ${cls}" pathLength="1" d="M${p.map(q => q.join(",")).join(" L")}" fill="none" stroke="${c}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`;
+  g += path(pN, "var(--bad)", "l1") + path(pB, "var(--qiskit)", "l2");
+  g += `<line x1="${X(cross)}" x2="${X(cross)}" y1="14" y2="${H - pb}" stroke="var(--otono)" stroke-dasharray="4 4"/><g class="xlab"><rect x="${X(cross) + 6}" y="16" width="196" height="22" rx="11" fill="var(--surface)" stroke="var(--otono)"/><text x="${X(cross) + 104}" y="31" text-anchor="middle" font-size="11" font-weight="600" fill="var(--ink)">desde N = ${cross}, Grover consulta menos</text></g>`;
+  inst.forEach((i, k) => g += `<circle class="pt" style="--i:${k}" cx="${X(i.n)}" cy="${Y(mean(i.runs.map(r => r.consultas)))}" r="6" fill="var(--otono)" stroke="var(--surface)" stroke-width="2"/>`);
+  if (R) { const x = X(R.n), y = Y(mean(R.runs.map(r => r.consultas))); g += `<polygon class="pt" points="${x},${y - 8} ${x + 8},${y} ${x},${y + 8} ${x - 8},${y}" fill="var(--ink)" stroke="var(--surface)" stroke-width="2"/>`; }
+  g += `<line id="cguide" x1="0" x2="0" y1="14" y2="${H - pb}" stroke="var(--ink)" stroke-opacity=".35" hidden/><circle id="cgN" r="5" fill="var(--bad)" hidden/><circle id="cgB" r="5" fill="var(--qiskit)" hidden/>`;
+  g += `<rect id="chit" x="${pl}" y="0" width="${W - pl - 16}" height="${H - pb}" fill="transparent"/>`;
+  const svg = $("logc"); svg.setAttribute("viewBox", `0 0 ${W} ${H}`); svg.innerHTML = g;
+  svg.classList.remove("play"); void svg.getBoundingClientRect(); svg.classList.add("play");
+
+  // Detalle al pasar el mouse: N, N!, presupuesto y la razón
+  const tip = $("ctip");
+  svg.onpointermove = e => {
+    const b = svg.getBoundingClientRect(), x = (e.clientX - b.left) / b.width * W, n = Math.max(3, Math.min(14, Math.round(3 + (x - pl) / ((W - pl - 16) / 11))));
+    const gx = X(n), me = inst.find(i => i.n === n), ratio = NF(n) / BU(n);
+    ["cguide", "cgN", "cgB"].forEach(id => $(id).hidden = false);
+    $("cguide").setAttribute("x1", gx); $("cguide").setAttribute("x2", gx);
+    $("cgN").setAttribute("cx", gx); $("cgN").setAttribute("cy", Y(NF(n))); $("cgB").setAttribute("cx", gx); $("cgB").setAttribute("cy", Y(BU(n)));
+    tip.hidden = false; tip.style.left = `${gx / W * 100}%`;
+    tip.innerHTML = `<b>N = ${n}</b><span><i style="background:var(--bad)"></i>N! = ${fmtN(NF(n))}</span><span><i style="background:var(--qiskit)"></i>presupuesto = ${fmtN(BU(n))}</span>${me ? `<span><i style="background:var(--otono)"></i>medido = ${mean(me.runs.map(r => r.consultas)).toFixed(0)}</span>` : ""}<em class="${ratio >= 1 ? "ok" : ""}">${ratio >= 1 ? `Grover: ${ratio >= 100 ? Math.round(ratio).toLocaleString("es") : ratio.toLocaleString("es", { maximumFractionDigits: 1 })}× menos` : `Grover: ${(1 / ratio).toLocaleString("es", { maximumFractionDigits: 1 })}× más`}</em>`;
+  };
+  svg.onpointerleave = () => { tip.hidden = true; ["cguide", "cgN", "cgB"].forEach(id => $(id).hidden = true); };
+  if (!reduced()) document.querySelectorAll("#cmpKpis .cnt").forEach(countUp);
 }
 
 /* ---------------- Ejercicios y glosario ---------------- */
@@ -577,7 +630,7 @@ $("foot").innerHTML = `<b>Q-Niño</b> · Equipo <b>Quantum Action</b>: Jefry Roj
 
 /* ---------------- Navegación, motor y tema ---------------- */
 function seg(id, opts, curv, cb) { const el = $(id); el.innerHTML = opts.map(n => `<button type="button" data-v="${n}" aria-pressed="${n === curv}">${n}</button>`).join(""); el.onclick = e => { const b = e.target.closest("button"); if (b) cb(+b.dataset.v); }; }
-function show(v) { if (!document.getElementById("v-" + v)) v = "simulador"; document.querySelectorAll("#menu button").forEach(b => b.setAttribute("aria-selected", b.dataset.v === v)); document.querySelectorAll("section.view").forEach(s => s.hidden = s.id !== "v-" + v); stagger(`#v-${v} .card`, null); if (v === "simulador" && LM) setTimeout(() => { LM.invalidateSize(); drawMapReal.key = null; drawMap(); }, 60); if (v !== "animacion") stop(); try { history.replaceState(null, "", "#" + v); } catch {} window.scrollTo({ top: 0 }); }
+function show(v) { if (!document.getElementById("v-" + v)) v = "simulador"; document.querySelectorAll("#menu button").forEach(b => b.setAttribute("aria-selected", b.dataset.v === v)); document.querySelectorAll("section.view").forEach(s => s.hidden = s.id !== "v-" + v); stagger(`#v-${v} .card`, null); if (v === "comparador") renderCompare(); if (v === "simulador" && LM) setTimeout(() => { LM.invalidateSize(); drawMapReal.key = null; drawMap(); }, 60); if (v !== "animacion") stop(); try { history.replaceState(null, "", "#" + v); } catch {} window.scrollTo({ top: 0 }); }
 $("menu").onclick = e => { const b = e.target.closest("button"); if (b) show(b.dataset.v); };
 function updEngine() { const el = $("engine"); el.classList.toggle("live", useBackend);
   $("engineTxt").textContent = useBackend ? `Qiskit ${backend.qiskit} en vivo · servidor local` : backend ? "Navegador (clic para usar Qiskit en vivo)" : Q ? `Navegador · referencia Qiskit ${Q.qiskit}` : "Navegador"; }

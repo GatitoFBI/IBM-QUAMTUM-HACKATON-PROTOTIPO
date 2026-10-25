@@ -177,10 +177,14 @@
 <!-- ============ COMPARADOR ============ -->
 <section class="view" id="v-comparador" hidden>
   <div class="shead"><span class="eyebrow">Complejidad de consultas</span><h2>Fuerza bruta vs Grover</h2><p id="cmpIntro"></p></div>
+  <div class="tiles" id="cmpKpis"></div>
   <div class="g2">
-    <div class="card"><h3>Consultas (escala logarítmica)</h3><svg id="logc" viewBox="0 0 560 300" width="100%" role="img" aria-label="Consultas clásico vs Grover"></svg>
-      <div class="legend"><span><i style="background:var(--bad)"></i>fuerza bruta: N!</span><span><i style="background:var(--qiskit)"></i>presupuesto de Grover</span><span><i style="background:var(--otono)"></i>medido con Qiskit</span><span><i style="background:var(--ink)"></i>tu última ejecución</span></div></div>
-    <div class="card"><h3>Resultados de referencia calculados con Qiskit</h3><div class="scroll"><table class="t" id="rtab"></table></div>
+    <div class="card"><div class="row between"><h3>Consultas al oráculo (escala logarítmica)</h3><span class="muted small">Pasa el mouse sobre el gráfico</span></div>
+      <div class="chartwrap"><svg id="logc" viewBox="0 0 560 320" width="100%" role="img" aria-label="Consultas de la fuerza bruta frente al presupuesto de Grover según N"></svg><div class="ctip" id="ctip" hidden></div></div>
+      <div class="legend"><span><i style="background:var(--bad)"></i>fuerza bruta: N!</span><span><i style="background:var(--qiskit)"></i>presupuesto de Grover</span><span><i style="background:var(--otono)"></i>medido con Qiskit</span><span><i style="background:var(--ink)"></i>tu última ejecución</span><span><i style="background:var(--ok);opacity:.5"></i>zona de ventaja</span></div>
+      <h3>¿Cuántas veces menos consulta Grover?</h3>
+      <svg id="ratio" viewBox="0 0 420 260" width="100%" role="img" aria-label="Razón entre N! y el presupuesto de Grover para cada N"></svg></div>
+    <div class="card"><h3>Resultados medidos con Qiskit</h3><div class="rrows" id="rtab"></div>
       <p class="muted small">La métrica que importa son las consultas al oráculo. El tiempo es de simulación en una laptop y crece con 2<sup>qubits</sup>; no representa una computadora cuántica real.</p></div>
   </div>
 </section>

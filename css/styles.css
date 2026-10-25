@@ -561,3 +561,35 @@ html.motion .log div.new{animation:slideIn .4s cubic-bezier(.2,.7,.2,1)}
 html.motion .bar.hit i{box-shadow:0 0 0 3px var(--surface),0 0 0 6px var(--otono)}
 @keyframes curPulse{50%{transform:scale(1.25)}}
 @keyframes ctaFloat{50%{transform:translate(-50%,-56%)}}
+
+/* ---------------- Comparador ---------------- */
+#v-comparador .g2{align-items:start}
+.chartwrap{position:relative}
+#logc{display:block;cursor:crosshair}
+.ctip{position:absolute;top:8px;transform:translateX(-50%);display:grid;gap:3px;padding:8px 10px;border-radius:10px;background:var(--surface);border:1px solid var(--line);box-shadow:0 8px 24px rgba(0,0,0,.25);font-size:.8rem;pointer-events:none;white-space:nowrap;z-index:2}
+.ctip span{display:flex;align-items:center;gap:6px;color:var(--muted)}
+.ctip i{width:9px;height:9px;border-radius:50%;display:inline-block}
+.ctip em{font-style:normal;font-weight:700;color:var(--otono-ink)}
+.ctip em.ok{color:var(--ok)}
+.rrows{display:grid;gap:10px}
+.rr{display:grid;gap:6px;padding:10px 12px;border-radius:12px;background:var(--sunk);border:1px solid var(--line)}
+.rh{display:flex;justify-content:space-between;align-items:center}
+.rn{font:700 1.1rem var(--cond)}
+.rbars{display:grid;gap:5px}
+.rr .mbar{grid-template-columns:54px minmax(0,1fr) 72px}
+.rr .mbar i{background:var(--bad);opacity:.75}
+.rr .mbar.q i{background:var(--qiskit);opacity:1}
+html.motion #logc.play .ln{stroke-dasharray:1;stroke-dashoffset:1;animation:lineDraw 1.6s cubic-bezier(.4,0,.2,1) forwards}
+html.motion #logc.play .l2{animation-delay:.3s}
+html.motion #logc.play .zone{animation:fadeIn .8s 1.4s ease-out backwards}
+html.motion #logc.play .xlab{animation:popIn .45s 1.2s cubic-bezier(.3,1.4,.5,1) backwards;transform-box:fill-box;transform-origin:left}
+html.motion #logc.play .pt{transform-box:fill-box;transform-origin:center;animation:popIn .45s cubic-bezier(.3,1.6,.5,1) backwards;animation-delay:calc(var(--i,0) * 120ms + 1.5s)}
+html.motion section.view:not([hidden]) .rr{animation:fadeUp .45s cubic-bezier(.2,.7,.2,1) backwards;animation-delay:calc(var(--i,0) * 90ms + .2s)}
+html.motion section.view:not([hidden]) .rr .mbar i{animation:growW .9s cubic-bezier(.2,.7,.2,1) backwards;animation-delay:.5s}
+html.motion section.view:not([hidden]) #ratio .rbar{transform-box:fill-box;transform-origin:left;animation:growX .6s cubic-bezier(.2,.7,.2,1) backwards;animation-delay:calc(var(--i,0) * 50ms + .4s)}
+html.motion section.view:not([hidden]) #cmpKpis .tile{animation:fadeUp .5s cubic-bezier(.2,.7,.2,1) backwards;animation-delay:calc(var(--i,0) * 90ms)}
+html.motion .rr{transition:transform .2s,box-shadow .2s}
+html.motion .rr:hover{transform:translateY(-2px);box-shadow:0 6px 16px color-mix(in srgb,var(--qiskit) 14%,transparent)}
+@keyframes lineDraw{to{stroke-dashoffset:0}}
+@keyframes fadeIn{from{opacity:0}}
+@keyframes growX{from{transform:scaleX(0)}}
