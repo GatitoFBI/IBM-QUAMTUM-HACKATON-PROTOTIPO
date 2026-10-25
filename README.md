@@ -361,4 +361,4 @@ Los notebooks de `docs/proceso/` son exportaciones de Google Colab: empiezan con
 - **Qiskit 2.6.1** (IBM Quantum), qiskit-optimization y qiskit-algorithms (en los experimentos), NumPy y Matplotlib.
 - **Algoritmos:** C. Dürr y P. Høyer (1996), *A quantum algorithm for finding the minimum*; M. Boyer, G. Brassard, P. Høyer y A. Tapp (1998), *Tight bounds on quantum searching*; L. Grover (1996).
 - **Referencia sobre límites:** R. Babbush et al. (2021), *Focus beyond quadratic speedups for error-corrected quantum advantage*, PRX Quantum.
-- **Herramientas:** Google Colab (experimentos), FastAPI y Uvicorn (backend), Vercel (despliegue). La web, el backend y esta documentación se hicieron con ayuda de **Claude Code** (Anthropic), a partir del código y los análisis del equipo.
+- **Herramientas:** Google Colab (experimentos), FastAPI y Uvicorn (backend), Leaflet y mapas de © colaboradores de OpenStreetMap (mapa del simulador), Vercel (despliegue). La web, el backend y esta documentación se hicieron con ayuda de **Claude Code** (Anthropic), a partir del código y los análisis del equipo.

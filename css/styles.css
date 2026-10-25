@@ -252,3 +252,16 @@ html.motion .stage.tick{animation:tick .35s ease-out}
 @keyframes tick{from{transform:scale(.99);box-shadow:0 0 0 4px color-mix(in srgb,var(--otono) 45%,transparent)}}
 html.motion .pipe i{transition:background .25s,color .25s,transform .25s}
 html.motion .pipe i.on{transform:translateY(-1px)}
+
+/* Mapa real (Leaflet) */
+.mapreal{position:relative;z-index:0;isolation:isolate;height:470px;border-radius:10px;overflow:hidden;background:var(--sunk);border:1px solid var(--line)}
+.mapreal .leaflet-tooltip.ztip{background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:3px 7px;font:500 12px/1.3 var(--sans);box-shadow:0 2px 8px rgba(0,0,0,.18)}
+.mapreal .leaflet-tooltip.ztip b{font-weight:700}
+.mapreal .leaflet-tooltip-right.ztip::before{border-right-color:var(--line)}
+.mapreal .leaflet-tooltip-left.ztip::before{border-left-color:var(--line)}
+.mapreal .leaflet-control-attribution{font-size:10px;background:color-mix(in srgb,var(--surface) 85%,transparent);color:var(--muted)}
+.mapreal .leaflet-control-attribution a{color:var(--qiskit-2)}
+.mapreal .leaflet-bar a{background:var(--surface);color:var(--ink);border-color:var(--line)}
+html.motion .mapreal .zpop{transform-box:fill-box;transform-origin:center;animation:pop .5s cubic-bezier(.3,1.6,.5,1) backwards}
+@media (max-width:600px){.mapreal{height:380px}}
+.mapreal.dark .leaflet-tile-pane{filter:invert(1) hue-rotate(200deg) brightness(.85) saturate(.6)}

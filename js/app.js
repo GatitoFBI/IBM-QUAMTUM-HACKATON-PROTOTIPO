@@ -169,7 +169,33 @@ function renderResults() {
 }
 
 /* ---------------- Mapa ---------------- */
+/* Mapa real con Leaflet y teselas de OpenStreetMap/CARTO; sin Leaflet (sin internet) se usa el esquema SVG */
+let LM = null, LG = null, LT = null;
+const cssVar = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const isDark = () => { const r = document.documentElement; return r.dataset.theme ? r.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches; };
+function mapTiles() { // OpenStreetMap estándar; en modo oscuro se oscurece con un filtro CSS (.mapreal.dark)
+  if (!LM) return; $("mapReal").classList.toggle("dark", isDark());
+  if (!LT) LT = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 13,
+    attribution: '© <a href="https://www.openstreetmap.org/copyright">colaboradores de OpenStreetMap</a>' }).addTo(LM);
+}
+const zoneLatLng = (z, j, n) => Z[z] || (() => { const c = COAST[Math.round(2 + j * (COAST.length - 4) / Math.max(1, n - 1))]; return [c[0], c[1] + 0.6]; })();
+function drawMapReal(asg, Fm) {
+  if (!LM) { LM = L.map("mapReal", { scrollWheelZoom: false, zoomSnap: .25 }); mapTiles(); LG = L.layerGroup().addTo(LM); }
+  LG.clearLayers();
+  const n = cur.F.length, pts = cur.zonas.map((z, j) => zoneLatLng(z, j, n)), fresh = mapFresh && asg;
+  if (asg) for (let i = 0; i < n; i++) for (let k = i + 1; k < n; k++)
+    L.polyline([pts[asg[i]], pts[asg[k]]], { color: cssVar("--otono"), weight: 1.5 + 6 * cur.F[i][k] / Fm, opacity: .9, className: "flow" }).addTo(LG);
+  cur.zonas.forEach((z, j) => { const b = asg ? asg.indexOf(j) : -1;
+    L.circleMarker(pts[j], { radius: b >= 0 ? 9 : 6, color: cssVar("--ink"), weight: 2, fillColor: cssVar(b >= 0 ? "--qiskit" : "--surface"), fillOpacity: 1, className: fresh ? "zpop" : "" })
+      .bindTooltip(`<b>${esc(z)}</b>${b >= 0 ? `<br>${esc(cur.brigadas[b])}` : ""}`, { permanent: true, direction: j % 2 ? "left" : "right", offset: [j % 2 ? -10 : 10, 0], className: "ztip" }).addTo(LG); });
+  const key = pts.join("|"); if (drawMapReal.key !== key) { LM.fitBounds(L.latLngBounds(pts), { padding: [40, 40], maxZoom: 8 }); drawMapReal.key = key; }
+  mapFresh = false;
+}
 function drawMap() {
+  const Fm0 = Math.max(1, ...cur.F.flat()), asg0 = R && !stale && R.n === cur.F.length ? R.perms[bestRun().indice] : null;
+  if (window.L) return drawMapReal(asg0, Fm0);
+  $("mapReal").hidden = true; $("map").hidden = false;
+  $("mapNote").textContent = "Sin conexión al servidor de mapas: se muestra un esquema de la costa, no a escala. Grosor de cada línea = sinergia F.";
   const P = ([la, lo]) => [(lo + 82) * 36, (-la - 3) * 36 + 10], n = cur.F.length;
   const coast = COAST.map(P);
   const pos = cur.zonas.map((z, j) => Z[z] ? P(Z[z]) : (() => { const c = coast[Math.round(2 + j * (coast.length - 4) / Math.max(1, n - 1))]; return [c[0] + 26, c[1]]; })());
@@ -343,12 +369,12 @@ $("foot").innerHTML = `<b>Q-Niño</b> · Equipo <b>Quantum Action</b>: Jefry Roj
 
 /* ---------------- Navegación, motor y tema ---------------- */
 function seg(id, opts, curv, cb) { const el = $(id); el.innerHTML = opts.map(n => `<button type="button" data-v="${n}" aria-pressed="${n === curv}">${n}</button>`).join(""); el.onclick = e => { const b = e.target.closest("button"); if (b) cb(+b.dataset.v); }; }
-function show(v) { if (!document.getElementById("v-" + v)) v = "simulador"; document.querySelectorAll("#menu button").forEach(b => b.setAttribute("aria-selected", b.dataset.v === v)); document.querySelectorAll("section.view").forEach(s => s.hidden = s.id !== "v-" + v); stagger(`#v-${v} .card`, null); if (v !== "animacion") stop(); try { history.replaceState(null, "", "#" + v); } catch {} window.scrollTo({ top: 0 }); }
+function show(v) { if (!document.getElementById("v-" + v)) v = "simulador"; document.querySelectorAll("#menu button").forEach(b => b.setAttribute("aria-selected", b.dataset.v === v)); document.querySelectorAll("section.view").forEach(s => s.hidden = s.id !== "v-" + v); stagger(`#v-${v} .card`, null); if (v === "simulador" && LM) setTimeout(() => { LM.invalidateSize(); drawMapReal.key = null; drawMap(); }, 60); if (v !== "animacion") stop(); try { history.replaceState(null, "", "#" + v); } catch {} window.scrollTo({ top: 0 }); }
 $("menu").onclick = e => { const b = e.target.closest("button"); if (b) show(b.dataset.v); };
 function updEngine() { const el = $("engine"); el.classList.toggle("live", useBackend);
   $("engineTxt").textContent = useBackend ? `Qiskit ${backend.qiskit} en vivo · servidor local` : backend ? "Navegador (clic para usar Qiskit en vivo)" : Q ? `Navegador · referencia Qiskit ${Q.qiskit}` : "Navegador"; }
 $("engine").onclick = () => { if (!backend) return toast("Para Qiskit en vivo: ejecuta python api.py y abre http://127.0.0.1:8000"); useBackend = !useBackend; updEngine(); };
-$("theme").onclick = () => { const r = document.documentElement, d = r.dataset.theme ? r.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches; r.dataset.theme = d ? "light" : "dark"; };
+$("theme").onclick = () => { const r = document.documentElement, d = r.dataset.theme ? r.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches; r.dataset.theme = d ? "light" : "dark"; mapTiles(); drawMap(); };
 (async () => { try { const c = new AbortController(); setTimeout(() => c.abort(), 1500); const r = await fetch("api/salud", { signal: c.signal }); if (r.ok) { backend = await r.json(); useBackend = true; } } catch {} updEngine(); })();
 
 renderExercises(); qCalc();

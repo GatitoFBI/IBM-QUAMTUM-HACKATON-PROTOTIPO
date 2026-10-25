@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <link rel="stylesheet" href="css/styles.css">
 <link rel="icon" type="image/svg+xml" href="img/logo.svg">
 
@@ -74,8 +75,9 @@
       <p class="muted small" id="baseName"></p>
       <div class="changes" id="changes"></div>
       <h3>Mapa de la asignación</h3>
-      <svg class="mapbox" id="map" viewBox="0 0 300 470" width="100%" role="img" aria-label="Mapa esquemático de la costa peruana"></svg>
-      <p class="muted small">Esquema de la costa, no a escala. Grosor de cada línea = sinergia F entre las brigadas de esas zonas.</p>
+      <div class="mapreal" id="mapReal" role="region" aria-label="Mapa de la costa peruana con las zonas y la asignación"></div>
+      <svg class="mapbox" id="map" viewBox="0 0 300 470" width="100%" role="img" aria-label="Mapa esquemático de la costa peruana" hidden></svg>
+      <p class="muted small" id="mapNote">Mapa de OpenStreetMap con ubicaciones aproximadas de cada zona. Las líneas unen las zonas de cada par de brigadas en línea recta, no por carretera; su grosor es la sinergia F.</p>
     </div>
   </div>
 
@@ -200,5 +202,6 @@
 <div class="toast" id="toast" role="status"></div>
 
 <script src="datos.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="js/grover.js"></script>
 <script src="js/app.js"></script>
