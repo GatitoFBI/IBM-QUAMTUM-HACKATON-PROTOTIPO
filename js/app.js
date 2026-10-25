@@ -61,18 +61,42 @@ function resize(n) {
   cur.zonas = [...Array(n)].map((_, i) => cur.zonas[i] ?? base.zonas[i] ?? ZON[i] ?? `Zona ${i + 1}`);
   const grow = (M, b, def) => [...Array(n)].map((_, i) => [...Array(n)].map((_, k) => i === k ? 0 : (i < old && k < old ? M[i][k] : (b[i]?.[k] ?? def))));
   cur.F = grow(cur.F, base.F, 5); cur.D = grow(cur.D, base.D, 10);
-  renderEditor(); onChange();
+  renderEditor({ count: true }); onChange();
 }
-function renderEditor() {
-  const n = cur.F.length;
-  $("dataTitle").textContent = `Datos · ${n} brigadas y ${n} zonas`;
-  seg("nSel", [3, 4, 5, 6], n, resize);
-  $("names").innerHTML = `<div class="pair"><span></span><span>Brigada</span><span>Zona</span></div>` + [...Array(n)].map((_, i) =>
-    `<div class="pair"><span>${i + 1}</span><input type="text" maxlength="24" data-nm="brigadas" data-i="${i}" value="${esc(cur.brigadas[i])}" aria-label="Nombre de la brigada ${i + 1}"><input type="text" maxlength="24" data-nm="zonas" data-i="${i}" value="${esc(cur.zonas[i])}" aria-label="Nombre de la zona ${i + 1}"></div>`).join("");
-  const mat = (key, labels) => `<tr><th></th>${labels.map(l => `<th title="${esc(l)}">${esc(l)}</th>`).join("")}</tr>` + cur[key].map((row, i) =>
-    `<tr><th title="${esc(labels[i])}">${esc(labels[i])}</th>${row.map((v, k) => `<td><input type="number" min="0" max="999" step="1" data-m="${key}" data-i="${i}" data-k="${k}" value="${v}" ${i === k ? "disabled" : ""} aria-label="${key}[${labels[i]}][${labels[k]}]"></td>`).join("")}</tr>`).join("");
+const PAL = ["--qiskit", "--otono", "--qiskit-2", "--ok", "--qiskit", "--otono"];
+const PIN = `<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z" fill="currentColor"/></svg>`;
+let lastN = null;
+// opts.count: animar los contadores · opts.shuffle: cascada en todas las celdas (datos aleatorios)
+function renderEditor(opts = {}) {
+  const n = cur.F.length, M = G.fact(n), q = G.qubits(M), from = lastN && n > lastN ? lastN : n; lastN = n;
+  $("dataTitle").textContent = `Datos del problema · ${n} brigadas y ${n} zonas`;
+  $("dataChip").innerHTML = `<b class="cnt">${M}</b> asignaciones posibles (${n}!) · <b class="cnt">${q}</b> qubits con Grover (one-hot: ${n * n})`;
+  if (opts.count) document.querySelectorAll("#dataChip .cnt").forEach(countUp);
+  seg("nSel", [3, 4, 5, 6], n, resize); $("nSel").style.setProperty("--x", n - 3);
+  $("names").innerHTML = `<div class="pair head"><span></span><span>Brigada</span><span></span><span>Zona</span></div>` + [...Array(n)].map((_, i) =>
+    `<div class="pair ${i >= from ? "grow" : ""}" style="--i:${i}"><span class="av" style="--c:var(${PAL[i]})">${esc((cur.brigadas[i] || "?")[0])}</span>` +
+    `<input type="text" maxlength="24" data-nm="brigadas" data-i="${i}" value="${esc(cur.brigadas[i])}" aria-label="Nombre de la brigada ${i + 1}">` +
+    `<span class="pin" title="Zona ${i + 1}">${PIN}</span><input type="text" maxlength="24" data-nm="zonas" data-i="${i}" value="${esc(cur.zonas[i])}" aria-label="Nombre de la zona ${i + 1}"></div>`).join("");
+  const mat = (key, labels) => `<tr><th></th>${labels.map((l, k) => `<th title="${esc(l)}" data-col="${k}">${esc(l)}</th>`).join("")}</tr>` + cur[key].map((row, i) =>
+    `<tr><th title="${esc(labels[i])}" data-row="${i}">${esc(labels[i])}</th>${row.map((v, k) => {
+      const cls = [i >= from || k >= from ? "grow" : "", opts.shuffle && i !== k ? "shuf" : ""].join(" ");
+      return `<td><input type="number" min="0" max="999" step="1" class="${cls}" style="--i:${opts.shuffle ? i * n + k : i + k}" data-m="${key}" data-i="${i}" data-k="${k}" value="${i === k ? "" : v}" placeholder="${i === k ? "—" : ""}" ${i === k ? "disabled" : ""} aria-label="${key}[${labels[i]}][${labels[k]}]"></td>`; }).join("")}</tr>`).join("");
   $("matF").innerHTML = mat("F", cur.brigadas); $("matD").innerHTML = mat("D", cur.zonas);
+  heat("F"); heat("D");
 }
+// Mapa de calor: --h (0–1) según el valor relativo al máximo de la matriz
+function heat(key) {
+  const mx = Math.max(1, ...cur[key].flat());
+  document.querySelectorAll(`[data-m="${key}"]`).forEach(el => { const i = +el.dataset.i, k = +el.dataset.k; el.style.setProperty("--h", i === k ? 0 : (cur[key][i][k] / mx).toFixed(2)); });
+}
+// Al enfocar una celda: se resaltan su fila, su columna y su pareja simétrica
+document.addEventListener("focusin", e => {
+  document.querySelectorAll(".mat .hl, .mat .twin").forEach(x => x.classList.remove("hl", "twin"));
+  const t = e.target; if (!t.dataset?.m) return;
+  const tb = t.closest("table"), i = +t.dataset.i, k = +t.dataset.k;
+  tb.querySelector(`th[data-row="${i}"]`)?.classList.add("hl"); tb.querySelector(`th[data-col="${k}"]`)?.classList.add("hl");
+  tb.querySelector(`[data-i="${k}"][data-k="${i}"]`)?.classList.add("twin");
+});
 const esc = s => String(s).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
 
 document.addEventListener("input", e => {
@@ -82,10 +106,12 @@ document.addEventListener("input", e => {
     if (!Number.isInteger(v) || v < 0 || v > 999) { $("err").hidden = false; $("err").textContent = `${t.dataset.m}: usa enteros entre 0 y 999.`; return; }
     $("err").hidden = true;
     cur[t.dataset.m][i][k] = v; cur[t.dataset.m][k][i] = v;                // matriz simétrica
+    heat(t.dataset.m);
     const twin = document.querySelector(`[data-m="${t.dataset.m}"][data-i="${k}"][data-k="${i}"]`); if (twin) twin.value = v;
     onChange();
   } else if (t.dataset.nm) {
     cur[t.dataset.nm][+t.dataset.i] = t.value.trim() || (t.dataset.nm === "brigadas" ? "Brigada " : "Zona ") + (+t.dataset.i + 1);
+    if (t.dataset.nm === "brigadas") { const av = t.parentElement.querySelector(".av"); if (av) av.textContent = (t.value.trim() || "?")[0]; }
     onChange(true);
   }
 });
@@ -113,7 +139,7 @@ function onChange(namesOnly) {
   drawMap();
 }
 $("restore").onclick = () => { cur = clone({ brigadas: base.brigadas, zonas: base.zonas, F: base.F, D: base.D }); renderEditor(); onChange(); toast("Datos restaurados"); };
-$("randomize").onclick = () => { const n = cur.F.length, r = () => Math.random(); for (let i = 0; i < n; i++) for (let k = i + 1; k < n; k++) { cur.F[i][k] = cur.F[k][i] = 1 + Math.floor(r() * 9); cur.D[i][k] = cur.D[k][i] = 5 + Math.floor(r() * 15); } renderEditor(); onChange(); };
+$("randomize").onclick = () => { const n = cur.F.length, r = () => Math.random(); for (let i = 0; i < n; i++) for (let k = i + 1; k < n; k++) { cur.F[i][k] = cur.F[k][i] = 1 + Math.floor(r() * 9); cur.D[i][k] = cur.D[k][i] = 5 + Math.floor(r() * 15); } renderEditor({ shuffle: true }); onChange(); toast("Matrices aleatorias generadas"); };
 $("export").onclick = () => {
   const txt = JSON.stringify({ brigadas: cur.brigadas, zonas: cur.zonas, F: cur.F, D: cur.D, semilla: +$("seed").value, repeticiones: +$("reps").value }, null, 1);
   const ok = () => toast("Copiado. Guárdalo como datos.json y ejecuta: python qiskit_grover.py --datos datos.json");

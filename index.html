@@ -48,26 +48,34 @@
     <p>Edita las brigadas, las zonas y las matrices: F = sinergia entre brigadas (cuánto deben coordinarse) y D = horas de viaje entre zonas. Al resolver, la fuerza bruta revisa las N! asignaciones y la búsqueda adaptativa de Grover busca el mínimo de C(p) = Σ<sub>i&lt;k</sub> F<sub>ik</sub>·D<sub>p(i)p(k)</sub>. Todo lo que cambies respecto a los datos cargados queda marcado en rosa y registrado en «Cambios».</p></div>
 
   <div class="g2">
-    <div class="card accent">
-      <div class="row between"><h3 id="dataTitle">Datos</h3><div class="row"><span class="eyebrow">N</span><div class="seg" id="nSel"></div></div></div>
-      <div class="g2e">
-        <div class="names" id="names"></div>
-        <div class="row" style="align-content:start">
-          <label class="f">Semilla <input type="number" id="seed" value="42" min="0" max="99999" style="width:96px"></label>
-          <label class="f">Repeticiones de Grover <input type="number" id="reps" value="10" min="1" max="20" style="width:96px"></label>
+    <div class="card accent editor">
+      <div class="ehead">
+        <div><h3 id="dataTitle">Datos del problema</h3><p class="muted small" id="dataChip"></p></div>
+        <div class="row"><span class="eyebrow">N</span><div class="seg slide" id="nSel"></div></div>
+      </div>
+
+      <section class="estep" aria-labelledby="st1"><h4 id="st1"><span class="snum">1</span>Brigadas y zonas</h4>
+        <div class="names" id="names"></div></section>
+
+      <section class="estep" aria-labelledby="st2"><h4 id="st2"><span class="snum">2</span>¿Cuánto se coordinan y qué tan lejos están?</h4>
+        <p class="muted small">Toca una celda para editarla: su pareja simétrica cambia sola. El color más intenso indica un valor más alto.</p>
+        <div class="mats">
+          <div class="matbox"><div class="mt"><b>F</b> · sinergia entre brigadas</div><div class="scroll"><table class="mat heat-f" id="matF"></table></div><div class="scale f"><span>baja</span><i></i><span>alta</span></div></div>
+          <div class="matbox"><div class="mt"><b>D</b> · horas entre zonas</div><div class="scroll"><table class="mat heat-d" id="matD"></table></div><div class="scale d"><span>cerca</span><i></i><span>lejos</span></div></div>
         </div>
-      </div>
-      <h3>F · sinergia entre brigadas <span class="muted small">(simétrica: al editar F[i][k] también cambia F[k][i])</span></h3>
-      <div class="scroll"><table class="mat" id="matF"></table></div>
-      <h3>D · horas entre zonas</h3>
-      <div class="scroll"><table class="mat" id="matD"></table></div>
-      <p class="err" id="err" hidden></p>
-      <div class="row">
-        <button class="btn main" id="solve" type="button">Resolver con Grover</button>
-        <button class="btn" id="randomize" type="button">Datos aleatorios</button>
-        <button class="btn warn" id="restore" type="button">Restaurar datos cargados</button>
-        <button class="btn" id="export" type="button">Copiar datos para Qiskit</button>
-      </div>
+        <p class="err" id="err" hidden></p></section>
+
+      <section class="estep" aria-labelledby="st3"><h4 id="st3"><span class="snum">3</span>Resolver</h4>
+        <div class="run">
+          <button class="btn main big" id="solve" type="button">Resolver con Grover</button>
+          <label class="f">Semilla <input type="number" id="seed" value="42" min="0" max="99999"></label>
+          <label class="f">Repeticiones <input type="number" id="reps" value="10" min="1" max="20"></label>
+        </div>
+        <div class="row tools">
+          <button class="btn" id="randomize" type="button">Datos aleatorios</button>
+          <button class="btn warn" id="restore" type="button">Restaurar datos cargados</button>
+          <button class="btn" id="export" type="button">Copiar datos para Qiskit</button>
+        </div></section>
     </div>
 
     <div class="card">
