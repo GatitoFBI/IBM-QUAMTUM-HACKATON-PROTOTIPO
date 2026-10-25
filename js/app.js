@@ -324,7 +324,13 @@ function drawMap() {
 }
 
 /* ---------------- Animación de Grover ---------------- */
-let runIdx = 0, frames = [], fi = -1, timer = null;
+let runIdx = 0, frames = [], fi = -1, timer = null, spd = 1;
+const SPEEDS = [[.5, "0,5×"], [1, "1×"], [2, "2×"]];
+function speedSeg() {
+  $("speedSeg").innerHTML = SPEEDS.map(([v, t]) => `<button type="button" data-spd="${v}" aria-pressed="${v === spd}">${t}</button>`).join("");
+}
+$("speedSeg").onclick = e => { const b = e.target.closest("[data-spd]"); if (!b) return; spd = +b.dataset.spd; speedSeg(); };
+speedSeg();
 function setupAnim() {
   $("run").innerHTML = R.runs.map((r, i) => `<option value="${i}">#${i + 1}${r.pasos[0].etapas ? " · animada" : ""} · ${r.consultas} consultas${r.optimo ? " ✓" : ""}</option>`).join("");
   runIdx = Math.max(0, R.runs.findIndex(r => r.pasos[0].etapas)); $("run").value = runIdx;
@@ -333,34 +339,55 @@ function setupAnim() {
 function buildFrames() {
   stop(); const run = R.runs[runIdx]; frames = [];
   run.pasos.forEach((p, s) => { if (p.etapas) p.etapas.forEach((_, k) => frames.push({ s, k })); frames.push({ s, k: "m" }); });
-  fi = -1; $("log").innerHTML = "";
+  fi = -1;
   const S = 2 ** R.qubits, anim = !!run.pasos[0].etapas;
   $("amps").style.gridTemplateColumns = `repeat(${S},minmax(0,1fr))`;
   $("amps").innerHTML = `<div class="axis"></div><div class="meanline" id="mean" hidden></div>` + [...Array(S).keys()].map(i => `<div class="bar" id="b${i}" title="${i < R.M ? `#${i} · C = ${R.costos[i]}` : `#${i} sin permutación`}"><div class="up"><i></i></div><div class="dn"><i></i></div></div>`).join("");
   $("ampNote").textContent = anim ? `${S} índices · ${R.qubits} qubits` : `Para N ≥ 5 o ejecuciones sin etapas se muestra solo el resumen`;
-  $("amps").style.opacity = anim ? 1 : .5; renderFrame();
+  $("amps").style.opacity = anim ? 1 : .5;
+  $("scrub").max = frames.length; renderFrame();
 }
 const stageInfo = e => e.startsWith("Superposición") ? ["Superposición", "H en todos los qubits: todos los índices con la misma amplitud."] : e.startsWith("Oráculo") ? [e, "Fase −1 en los índices más baratos que el umbral."] : [e, "Inversión sobre el promedio: lo que estaba por debajo sube."];
+// Barra de etapas: 4 nodos con la etapa actual resaltada y la iteración en curso
+function renderStepper(cur, p, it) {
+  const itTxt = () => !p ? null : !p.j ? "j = 0: sin iteraciones" : it ? `iteración ${it} de ${p.j}` : `${p.j} ${p.j === 1 ? "iteración" : "iteraciones"}`;
+  const sub = [`H en los ${R.qubits} qubits`, itTxt() ?? "fase −1 a los marcados", itTxt() ?? "inversión sobre el promedio", p && cur === 3 ? `P(marcado) ${(p.p_marcados * 100).toFixed(0)} %` : "se mide un índice"];
+  $("pipe").innerHTML = ["Superposición", "Oráculo", "Difusión", "Medición"].map((t, k) =>
+    `<li class="${k < cur ? "done" : k === cur ? "cur" : ""}"><span class="dot">${k + 1}</span><b>${t}</b><span>${sub[k]}</span></li>`).join("");
+}
+// Registro de mediciones hasta el cuadro actual (la más reciente arriba)
+function renderLog() {
+  const run = R.runs[runIdx], last = fi >= 0 ? frames[fi] : null, upto = last ? (last.k === "m" ? last.s : last.s - 1) : -1;
+  $("log").innerHTML = run.pasos.slice(0, upto + 1).map((p, s) => `<div class="${p.mejora ? "win" : ""} ${s === upto && last?.k === "m" ? "new" : ""}">#${s + 1} j=${p.j} umbral ${p.umbral} → ${p.costo_salida ?? "inválido"}${p.mejora ? " ✓" : ""} · ${p.llamadas} consultas</div>`).reverse().join("");
+}
 function renderFrame() {
   const run = R.runs[runIdx], S = 2 ** R.qubits;
-  if (fi < 0) { $("stN").textContent = "0"; $("stT").textContent = "Listo para empezar"; $("stS").textContent = `Umbral inicial al azar · presupuesto ${R.presupuesto} consultas · N! = ${R.M}`; $("pipe").innerHTML = ""; setBars(Array(S).fill(1 / Math.sqrt(S)), null, null, -1); $("meas").textContent = ""; drawStair(run, -1); updStats(run, -1); return; }
-  const f = frames[fi], p = run.pasos[f.s], marked = new Set(R.costos.map((c, i) => c < p.umbral ? i : -1).filter(i => i >= 0)), st = p.etapas ? p.etapas.map(e => e.etapa) : [];
+  $("scrub").value = fi + 1; $("scrubTxt").textContent = `${fi + 1} / ${frames.length}`;
+  $("ampCta").hidden = fi >= 0 || !!timer;
+  renderLog();
+  if (fi < 0) {
+    $("stN").textContent = "0"; $("stT").textContent = "Listo para empezar"; $("stS").textContent = `Umbral inicial al azar · presupuesto ${R.presupuesto} consultas · N! = ${R.M}`;
+    renderStepper(-1, null, 0); setBars(Array(S).fill(1 / Math.sqrt(S)), null, null, -1); setGauge(null); $("meas").textContent = ""; drawStair(run, -1); updStats(run, -1); return;
+  }
+  const f = frames[fi], p = run.pasos[f.s], marked = new Set(R.costos.map((c, i) => c < p.umbral ? i : -1).filter(i => i >= 0));
   $("stN").textContent = f.s + 1;
   const stg = document.querySelector(".stage"); stg.classList.remove("tick"); void stg.offsetWidth; stg.classList.add("tick");
-  $("pipe").innerHTML = [...st, "Medición"].map((e, k) => `<i class="${(f.k === "m" ? k === st.length : k === f.k) ? "on" : ""}">${e}</i>`).join("");
   if (f.k === "m") {
+    renderStepper(3, p, p.j);
     $("stT").textContent = p.mejora ? `Medición: ¡mejora! ${p.umbral} → ${p.costo_salida}` : "Medición: sin mejora";
     $("stS").textContent = `j = ${p.j} iteraciones · ${p.marcados} marcados · P(marcado) = ${(p.p_marcados * 100).toFixed(1)} %`;
-    setBars(p.etapas ? p.etapas[p.etapas.length - 1].amp : null, marked, p.y, p.salida);
-    $("meas").innerHTML = p.salida < R.M ? `Medido: índice ${p.salida} → ${R.perms[p.salida].map((z, i) => esc(R.zonas[z]).slice(0, 3)).join("·")}, costo ${p.costo_salida} ${p.mejora ? "<span class='ok'>✓ nuevo umbral</span>" : "(no mejora)"}` : `Medido: índice ${p.salida}, que no es ninguna asignación: se descarta.`;
-    const d = document.createElement("div"); if (p.mejora) d.className = "win"; d.textContent = `#${f.s + 1} j=${p.j} umbral ${p.umbral} → ${p.costo_salida ?? "inválido"}${p.mejora ? " ✓" : ""} · ${p.llamadas} consultas`; $("log").prepend(d);
+    setBars(p.etapas ? p.etapas[p.etapas.length - 1].amp : null, marked, p.y, p.salida); setGauge(p.p_marcados);
+    $("meas").innerHTML = p.salida < R.M ? `Medido: índice ${p.salida} → ${R.perms[p.salida].map(z => esc(R.zonas[z]).slice(0, 3)).join("·")}, costo ${p.costo_salida} ${p.mejora ? "<span class='ok'>✓ nuevo umbral</span>" : "(no mejora)"}` : `Medido: índice ${p.salida}, que no es ninguna asignación: se descarta.`;
   } else {
-    const e = p.etapas[f.k], [t, sub] = stageInfo(e.etapa), prev = f.k > 0 ? p.etapas[f.k - 1].amp : null;
+    const e = p.etapas[f.k], [t, sub] = stageInfo(e.etapa), prev = f.k > 0 ? p.etapas[f.k - 1].amp : null, it = +(e.etapa.match(/\d+/) || [0])[0];
+    renderStepper(e.etapa.startsWith("Superposición") ? 0 : e.etapa.startsWith("Oráculo") ? 1 : 2, p, it);
     $("stT").textContent = t; $("stS").textContent = `Umbral ${p.umbral} · ${p.marcados} marcados · ${sub}`;
-    setBars(e.amp, f.k === 0 ? null : marked, p.y, -1, e.etapa.startsWith("Difusión") && prev ? mean(prev) : null); $("meas").textContent = "";
+    setBars(e.amp, f.k === 0 ? null : marked, p.y, -1, e.etapa.startsWith("Difusión") && prev ? mean(prev) : null);
+    setGauge([...marked].reduce((s, i) => s + e.amp[i] ** 2, 0)); $("meas").textContent = "";
   }
   drawStair(run, f.s); updStats(run, f.s);
 }
+function setGauge(pv) { $("pgBar").style.width = pv == null ? "0%" : (pv * 100).toFixed(1) + "%"; $("pgVal").textContent = pv == null ? "—" : (pv * 100).toFixed(1) + " %"; }
 function setBars(amps, marked, best, hit, avg) {
   const S = 2 ** R.qubits, mx = amps ? Math.max(...amps.map(Math.abs), 1e-9) : 1;
   for (let i = 0; i < S; i++) { const b = $("b" + i); if (!b) continue; const a = amps ? amps[i] : 0;
@@ -371,14 +398,18 @@ function setBars(amps, marked, best, hit, avg) {
 function drawStair(run, s) {
   const W = 420, H = 220, pl = 44, pb = 28, tope = R.presupuesto, cmax = Math.max(...R.costos), cmin = R.optimo;
   const X = q => pl + (W - pl - 10) * Math.min(q, tope) / tope, Y = c => 10 + (H - pb - 10) * (cmax - c) / (cmax - cmin || 1);
-  let g = ""; for (const c of [cmin, (cmin + cmax) / 2, cmax]) g += `<line x1="${pl}" x2="${W - 10}" y1="${Y(c)}" y2="${Y(c)}" stroke="var(--line)"/><text x="${pl - 6}" y="${Y(c) + 3}" text-anchor="end" font-size="9" fill="var(--muted)">${Math.round(c)}</text>`;
+  let g = `<defs><linearGradient id="stairFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--qiskit)" stop-opacity=".28"/><stop offset="1" stop-color="var(--qiskit)" stop-opacity="0"/></linearGradient></defs>`;
+  for (const c of [cmin, (cmin + cmax) / 2, cmax]) g += `<line x1="${pl}" x2="${W - 10}" y1="${Y(c)}" y2="${Y(c)}" stroke="var(--line)"/><text x="${pl - 6}" y="${Y(c) + 3}" text-anchor="end" font-size="9" fill="var(--muted)">${Math.round(c)}</text>`;
   g += `<line x1="${pl}" x2="${W - 10}" y1="${Y(cmin)}" y2="${Y(cmin)}" stroke="var(--qiskit)" stroke-dasharray="4 4"/><text x="${W - 12}" y="${Y(cmin) - 4}" text-anchor="end" font-size="9" fill="var(--qiskit)">óptimo ${cmin}</text>`;
   if (R.M <= tope) g += `<line x1="${X(R.M)}" x2="${X(R.M)}" y1="10" y2="${H - pb}" stroke="var(--otono)" stroke-dasharray="2 3"/><text x="${X(R.M) + 3}" y="20" font-size="9" fill="var(--otono-ink)">N! = ${R.M}</text>`;
   g += `<text x="${pl}" y="${H - 8}" font-size="9" fill="var(--muted)">0 consultas</text><text x="${W - 10}" y="${H - 8}" text-anchor="end" font-size="9" fill="var(--muted)">presupuesto ${tope}</text>`;
-  if (s >= 0) { let d = `M${X(0)},${Y(run.pasos[0].umbral)}`;
-    for (let k = 0; k <= s; k++) { const p = run.pasos[k]; d += ` L${X(p.llamadas)},${Y(p.umbral)} L${X(p.llamadas)},${Y(p.mejora ? p.costo_salida : p.umbral)}`; }
-    g += `<path d="${d}" fill="none" stroke="var(--qiskit)" stroke-width="2.5"/>`;
-    run.pasos.slice(0, s + 1).forEach(p => { if (p.mejora) g += `<circle cx="${X(p.llamadas)}" cy="${Y(p.costo_salida)}" r="4" fill="var(--otono)"/>`; }); }
+  if (s >= 0) {
+    let d = `M${X(0)},${Y(run.pasos[0].umbral)}`, x = X(0), y = Y(run.pasos[0].umbral);
+    for (let k = 0; k <= s; k++) { const p = run.pasos[k]; x = X(p.llamadas); y = Y(p.mejora ? p.costo_salida : p.umbral); d += ` L${x},${Y(p.umbral)} L${x},${y}`; }
+    g += `<path d="${d} L${x},${H - pb} L${X(0)},${H - pb}Z" fill="url(#stairFill)"/><path d="${d}" fill="none" stroke="var(--qiskit)" stroke-width="2.5" stroke-linejoin="round"/>`;
+    run.pasos.slice(0, s + 1).forEach(p => { if (p.mejora) g += `<circle class="imp" cx="${X(p.llamadas)}" cy="${Y(p.costo_salida)}" r="4.5" fill="var(--otono)"/>`; });
+    g += `<circle class="cur" cx="${x}" cy="${y}" r="6" fill="var(--qiskit)" stroke="var(--surface)" stroke-width="2"/>`;
+  }
   $("stair").innerHTML = g;
 }
 function updStats(run, s) {
@@ -388,10 +419,18 @@ function updStats(run, s) {
   $("budTxt").textContent = `${q} de ${R.presupuesto} consultas del presupuesto · marca rosa = N! = ${R.M} (lo que revisa la fuerza bruta)${s === run.pasos.length - 1 ? ` · terminó con costo ${run.costo}${run.optimo ? " (óptimo ✓)" : ""}` : ""}`;
 }
 function next() { if (fi < frames.length - 1) { fi++; renderFrame(); return true; } stop(); return false; }
-function play() { if (timer) return stop(); if (fi >= frames.length - 1) { fi = -1; $("log").innerHTML = ""; } $("play").textContent = "⏸ Pausa"; tick(); }
-function tick() { if (!next()) return; const f = frames[fi]; timer = setTimeout(tick, (f.k === "m" ? 1100 : 800) * +$("speed").value * (R.runs[runIdx].pasos[0].etapas ? 1 : .3)); }
-function stop() { clearTimeout(timer); timer = null; $("play").textContent = "▶ Reproducir"; }
-$("play").onclick = play; $("stepB").onclick = () => { stop(); next(); }; $("restart").onclick = buildFrames; $("run").onchange = e => { runIdx = +e.target.value; buildFrames(); };
+function prev() { stop(); if (fi >= 0) { fi--; renderFrame(); } }
+function play() { if (timer) return stop(); if (fi >= frames.length - 1) fi = -1; $("play").textContent = "⏸"; $("play").classList.add("on"); $("ampCta").hidden = true; tick(); }
+function tick() { if (!next()) return; const f = frames[fi]; timer = setTimeout(tick, (f.k === "m" ? 1100 : 800) / spd * (R.runs[runIdx].pasos[0].etapas ? 1 : .3)); }
+function stop() { clearTimeout(timer); timer = null; $("play").textContent = "▶"; $("play").classList.remove("on"); }
+$("play").onclick = play; $("ampCta").onclick = play; $("stepB").onclick = () => { stop(); next(); }; $("prevB").onclick = prev; $("restart").onclick = buildFrames;
+$("run").onchange = e => { runIdx = +e.target.value; buildFrames(); };
+$("scrub").oninput = e => { stop(); fi = +e.target.value - 1; renderFrame(); };
+// Atajos: espacio reproduce o pausa; ← y → retroceden o avanzan un paso
+document.addEventListener("keydown", e => {
+  if ($("v-animacion").hidden || /SELECT|INPUT|TEXTAREA/.test(e.target.tagName)) return;
+  if (e.key === " ") { e.preventDefault(); play(); } else if (e.key === "ArrowRight") { stop(); next(); } else if (e.key === "ArrowLeft") prev();
+});
 
 /* ---------------- Calculadoras ---------------- */
 document.getElementById("ctabs").onclick = e => { const b = e.target.closest("button"); if (!b) return; document.querySelectorAll("#ctabs button").forEach(x => x.setAttribute("aria-selected", x === b)); document.querySelectorAll("[data-cpanel]").forEach(p => p.hidden = p.dataset.cpanel !== b.dataset.c); };

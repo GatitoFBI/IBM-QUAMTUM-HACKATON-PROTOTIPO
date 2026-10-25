@@ -108,22 +108,29 @@
 <section class="view" id="v-animacion" hidden>
   <div class="shead"><span class="eyebrow">Dürr–Høyer + BBHT</span><h2>Grover paso a paso</h2>
     <p>Se toma una asignación al azar como umbral; el oráculo marca con fase −1 las que cuestan menos; la difusión (inversión sobre el promedio) amplifica esas amplitudes; se mide, y si salió algo mejor el umbral baja. Se anima la última ejecución del Simulador.</p></div>
-  <div class="card">
-    <div class="row">
+  <div class="card anim-ctl">
+    <div class="ctlrow">
       <label class="f">Ejecución <select id="run"></select></label>
-      <button class="btn main" id="play" type="button">▶ Reproducir</button>
-      <button class="btn" id="stepB" type="button">Paso →</button>
-      <button class="btn" id="restart" type="button">↺ Reiniciar</button>
-      <label class="f">Velocidad <select id="speed"><option value="1.6">lenta</option><option value="1" selected>normal</option><option value="0.4">rápida</option></select></label>
+      <div class="transport">
+        <button class="tbtn" id="prevB" type="button" title="Paso anterior (←)" aria-label="Paso anterior">⏮</button>
+        <button class="tbtn play" id="play" type="button" title="Reproducir o pausar (espacio)" aria-label="Reproducir o pausar">▶</button>
+        <button class="tbtn" id="stepB" type="button" title="Paso siguiente (→)" aria-label="Paso siguiente">⏭</button>
+        <button class="tbtn" id="restart" type="button" title="Reiniciar" aria-label="Reiniciar">↺</button>
+      </div>
+      <div class="spd"><span class="eyebrow">Velocidad</span><div class="seg" id="speedSeg"></div></div>
       <span class="badge q" id="animEngine"></span>
     </div>
+    <div class="scrubrow"><input type="range" id="scrub" min="0" max="1" value="0" aria-label="Avanzar o retroceder en la animación"><span class="mono small" id="scrubTxt">0 / 0</span></div>
     <div class="stage"><span class="n" id="stN">0</span><div class="t"><b id="stT">Pulsa Reproducir</b><span id="stS"></span></div></div>
-    <div class="pipe" id="pipe"></div>
+    <ol class="stepper" id="pipe"></ol>
+    <p class="muted small kbd">Atajos: <kbd>Espacio</kbd> reproducir o pausar · <kbd>←</kbd> <kbd>→</kbd> paso a paso</p>
   </div>
   <div class="g2">
     <div class="card">
       <div class="row between"><h3>Amplitud de cada índice</h3><span class="muted small" id="ampNote"></span></div>
-      <div class="amps" id="amps"></div>
+      <div class="ampwrap"><div class="yax" aria-hidden="true"><span>+</span><span>0</span><span>−</span></div><div class="amps" id="amps"></div>
+        <button class="ampcta" id="ampCta" type="button">▶ Reproducir la búsqueda</button></div>
+      <div class="pgauge"><span>P(medir un marcado)</span><div class="pgt"><i id="pgBar"></i></div><b id="pgVal">—</b></div>
       <div class="legend"><span><i style="background:var(--otono)"></i>marcados (cuestan menos que el umbral)</span><span><i style="background:var(--qiskit)"></i>umbral actual</span><span><i style="background:var(--resto)"></i>resto</span><span><i style="background:var(--void)"></i>índices sin permutación</span><span><i style="border-top:2px dashed var(--qiskit-2);height:0;border-radius:0"></i>promedio</span></div>
       <p id="meas" style="font-weight:600;min-height:1.6em"></p>
     </div>

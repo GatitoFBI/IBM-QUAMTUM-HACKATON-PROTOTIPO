@@ -520,3 +520,44 @@ html.motion .sky .c5{--t:64s;--d:-50s}
 .ms2{font-size:.8rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 html.motion .ms{animation:fadeUp .45s cubic-bezier(.2,.7,.2,1) backwards;animation-delay:calc(var(--i,0) * 80ms);transition:transform .2s,box-shadow .2s}
 html.motion .ms:hover{transform:translateY(-2px);box-shadow:0 6px 14px color-mix(in srgb,var(--c) 18%,transparent)}
+
+/* ---------------- Grover paso a paso ---------------- */
+.anim-ctl{gap:14px}
+.ctlrow{display:flex;gap:16px;align-items:end;flex-wrap:wrap}
+.transport{display:flex;gap:8px;align-items:center}
+.tbtn{width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--bg);color:var(--ink);font-size:1rem;cursor:pointer;display:grid;place-items:center;transition:transform .15s,background .2s,box-shadow .2s}
+.tbtn:hover{border-color:var(--qiskit-2)}
+.tbtn.play{width:58px;height:58px;border:0;background:var(--qiskit);color:var(--on-qiskit);font-size:1.35rem}
+.spd{display:grid;gap:4px}
+#speedSeg button{min-width:48px}
+.scrubrow{display:flex;gap:12px;align-items:center}
+.scrubrow input{flex:1;accent-color:var(--qiskit)}
+.stepper{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}
+.stepper li{position:relative;display:grid;justify-items:center;gap:3px;text-align:center;font-size:.76rem;color:var(--muted);padding:0 4px}
+.stepper li:not(:first-child)::after{content:"";position:absolute;top:15px;right:50%;width:100%;height:3px;background:var(--line);z-index:0;transition:background .3s}
+.stepper li.done::after,.stepper li.cur::after{background:var(--qiskit)}
+.stepper .dot{position:relative;z-index:1;width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font:700 .8rem var(--mono);background:var(--sunk);border:2px solid var(--line);color:var(--muted);transition:background .3s,border-color .3s,transform .3s}
+.stepper b{font-size:.86rem;color:var(--muted)}
+.stepper li.done .dot{background:var(--qiskit);border-color:var(--qiskit);color:var(--on-qiskit)}
+.stepper li.cur .dot{background:var(--otono);border-color:var(--otono);color:var(--on-otono);transform:scale(1.12)}
+.stepper li.cur b,.stepper li.done b{color:var(--ink)}
+.kbd kbd{font:600 .74rem var(--mono);padding:1px 6px;border-radius:5px;border:1px solid var(--line);background:var(--sunk)}
+.ampwrap{position:relative;display:grid;grid-template-columns:20px minmax(0,1fr);gap:6px}
+.yax{display:grid;grid-template-rows:1fr auto 1fr;align-items:center;justify-items:center;font:700 .85rem var(--mono);color:var(--muted);padding:6px 0;height:240px}
+.ampcta{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);border:0;border-radius:999px;padding:12px 22px;font:700 1rem var(--sans);background:var(--qiskit);color:var(--on-qiskit);cursor:pointer;box-shadow:0 10px 30px color-mix(in srgb,var(--qiskit) 35%,transparent)}
+.bar.mk i{box-shadow:0 0 12px color-mix(in srgb,var(--otono) 65%,transparent)}
+.pgauge{display:grid;grid-template-columns:auto minmax(0,1fr) 64px;gap:10px;align-items:center;font-size:.84rem;color:var(--muted)}
+.pgt{height:12px;border-radius:6px;background:var(--sunk);overflow:hidden}
+.pgt i{display:block;height:100%;width:0;border-radius:6px;background:linear-gradient(90deg,var(--otono),var(--qiskit));transition:width .45s cubic-bezier(.3,.7,.2,1)}
+.pgauge b{text-align:right;color:var(--ink);font-variant-numeric:tabular-nums}
+html.motion .tbtn:hover{transform:translateY(-2px)}
+html.motion .tbtn.play:not(.on){animation:breathe 2.6s ease-in-out infinite}
+html.motion .tbtn.play.on{box-shadow:0 0 0 6px color-mix(in srgb,var(--qiskit) 22%,transparent)}
+html.motion .stepper li.cur .dot{animation:curPulse 1.4s ease-in-out infinite}
+html.motion .ampcta{animation:ctaFloat 2.2s ease-in-out infinite}
+html.motion #stair .cur{transform-box:fill-box;transform-origin:center;animation:curPulse 1.2s ease-in-out infinite}
+html.motion #stair .imp{transform-box:fill-box;transform-origin:center;animation:popIn .4s cubic-bezier(.3,1.6,.5,1)}
+html.motion .log div.new{animation:slideIn .4s cubic-bezier(.2,.7,.2,1)}
+html.motion .bar.hit i{box-shadow:0 0 0 3px var(--surface),0 0 0 6px var(--otono)}
+@keyframes curPulse{50%{transform:scale(1.25)}}
+@keyframes ctaFloat{50%{transform:translate(-50%,-56%)}}
