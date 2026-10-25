@@ -14,7 +14,11 @@ const files = [
   'js/grover.js',
   'img/logo.svg',
   'slides/index.html',
+  'slides/deck.js',
   'slides/estatica.html',
+  'pitch/pitch.css',
+  'pitch/cover.png',
+  'pitch/video.mp4',
   'LICENSE.hallmark.txt',
 ];
 
@@ -48,6 +52,18 @@ const assets = await Promise.all(files.map(async file => {
     : bytes;
   return {file, content};
 }));
+// /slides is the single source of the six animated slides and their styling.
+const slides = assets.find(asset => asset.file === 'slides/index.html').content.toString('utf8');
+const intro = await readFile(resolve(root, 'pitch/intro.html'), 'utf8');
+const stage = '<div id="stage"><div id="deck">';
+if (!slides.includes(stage) || (slides.match(/<section class="slide\b/g) || []).length !== 6) {
+  throw new Error('Expected the six-slide deck and its stage when building /pitch');
+}
+const pitch = slides
+  .replace('</head>', '<link rel="stylesheet" href="/pitch/pitch.css">\n</head>')
+  .replace('<body>', '<body data-presentation="pitch">')
+  .replace(stage, `<div id="stage">${intro}<div id="deck">`);
+assets.push({file: 'pitch/index.html', content: pitch});
 await rm(output, {recursive: true, force: true});
 for (const {file, content} of assets) {
   const target = resolve(output, file);

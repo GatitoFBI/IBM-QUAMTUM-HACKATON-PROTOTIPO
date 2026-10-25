@@ -3,6 +3,8 @@
   "buildCommand": "node scripts/build.mjs",
   "outputDirectory": "dist",
   "rewrites": [
-    { "source": "/slides", "destination": "/slides/index.html" }
+    { "source": "/slides", "destination": "/slides/index.html" },
+    { "source": "/pitch", "destination": "/pitch/index.html" },
+    { "source": "/pitch/", "destination": "/pitch/index.html" }
   ]
 }
