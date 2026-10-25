@@ -501,8 +501,9 @@ html.motion .sky .c5{--t:64s;--d:-50s}
 @keyframes wash{0%{background-position:0% 50%}100%{background-position:100% 50%}}
 
 /* Tarjeta del mapa: el mapa crece hasta llenar el alto disponible */
-.mapcard{display:flex;flex-direction:column;gap:12px}
-.mapcard .mapreal{flex:1 1 auto;height:auto;min-height:420px}
+.mapcard{display:flex;flex-direction:column;gap:12px;align-self:start}
+@media (min-height:920px) and (min-width:961px){.mapcard{position:sticky;top:calc(env(safe-area-inset-top,0px) + 60px)}}
+.mapcard .mapreal{flex:none;height:440px}
 .mlegend{display:flex;gap:12px;font-size:.74rem;color:var(--muted)}
 .mlegend span{display:inline-flex;align-items:center;gap:5px}
 .mlegend .lz{width:11px;height:11px;border-radius:50%;background:var(--qiskit);border:2px solid var(--ink)}
