@@ -277,14 +277,16 @@ Qiskit 2.6.1, semilla 42, 10 ejecuciones por N y sin parada anticipada:
 
 | Sección | Qué permite |
 |---|---|
-| **Simulador** | Sin escribir nada: elegir N (3–6), brigadas y zonas de listas, y ajustar cada celda de F y D con un deslizador o atajos (Baja, Media, Alta). D se puede estimar desde el mapa. Semilla y repeticiones también se eligen de listas. Cada cambio frente a los datos cargados se marca en rosa y se registra («F[Médica, Rescate]: 9 → 14»). Muestra el resultado, el mapa de la costa y los pasos de la solución |
-| **Grover paso a paso** | Anima cada etapa (superposición → oráculo → difusión → medición) con las amplitudes de cada índice, la línea del promedio y la evolución del umbral frente a las consultas |
+| **Simulador** | Sin escribir nada: elegir N (3–6) con botones, brigadas y zonas de listas, y ajustar cada celda de F y D con un deslizador o atajos (Baja · Media · Alta, Cerca · Media · Lejos). Las matrices son mapas de calor y la pareja simétrica cambia sola. D se puede estimar desde el mapa. Cada cambio frente a los datos cargados se marca en rosa y se registra («F[Médica, Rescate]: 9 → 14»). Al lado, un **mapa real de OpenStreetMap** (Leaflet) con las zonas y las rutas entre brigadas, y datos clave: par más coordinado, tramo más largo, zonas más alejadas y costo. El panel de resultado muestra el veredicto, los indicadores, las parejas brigada → zona y la línea de tiempo del umbral |
+| **Grover paso a paso** | Reproductor con ⏮ ▶ ⏭ ↺, barra para avanzar o retroceder, velocidad (0,5× · 1× · 2×) y atajos de teclado. Una barra de etapas (superposición → oráculo → difusión → medición) marca dónde va; se ven las amplitudes de cada índice con el promedio, la probabilidad de medir un marcado y la escalera del umbral frente a las consultas |
 | **Calculadoras** | Costo de una asignación (desglose por pares), qubits y presupuesto para cualquier N, iteraciones óptimas de Grover (simulación frente a sin²((2j+1)θ)) y conversor índice ↔ asignación |
-| **Comparador gráfico** | N! frente al presupuesto de Grover frente a las consultas medidas, en escala logarítmica hasta N = 14 |
+| **Comparador gráfico** | Cuatro datos clave (cruce en N = 7, ventaja en N = 14, aciertos medidos, qubits simulados); N! frente al presupuesto de Grover y las consultas medidas en escala logarítmica hasta N = 14, con la zona de ventaja y detalle al pasar el mouse; un gráfico de «cuántas veces menos consulta Grover» y las filas de resultados medidos con Qiskit |
 | **Ejercicios** | Casos para cargar con un clic: el caso N = 3 de la guía, los 4 casos verificados con Qiskit y los casos qap10 (pendientes) |
-| **Glosario y límites** | Términos, fórmulas, uso de Qiskit, el circuito impreso por Qiskit y las limitaciones |
+| **Glosario y límites** | Términos, el **diagrama del circuito** de una iteración de Grover (H → oráculo → difusión) con sus pasos, **fórmulas interactivas** (un deslizador de N recalcula N!, qubits, presupuesto e iteraciones), uso de Qiskit, el circuito impreso por Qiskit y las limitaciones |
 
 <p align="center"><img src="docs/img/05_web_animacion.png" width="49%" alt="Grover paso a paso"> <img src="docs/img/05_web_calculadoras.png" width="49%" alt="Calculadoras"></p>
+<p align="center"><img src="docs/img/06_web_glosario.png" width="49%" alt="Glosario con el circuito y las fórmulas interactivas"> <img src="docs/img/06_web_ejercicios.png" width="49%" alt="Ejercicios"></p>
+<p align="center"><img src="docs/img/06_web_oscuro.png" width="80%" alt="Simulador en modo oscuro"><br><em>Simulador con el tema Qiskit Fall Fest en modo oscuro</em></p>
 
 **Arquitectura:**
 
@@ -302,11 +304,11 @@ El indicador de la cabecera dice siempre qué motor calculó el resultado:
 - **«Qiskit precalculado»:** los datos originales, verificados con Qiskit (`datos.js`).
 - **«Navegador»:** en Vercel, si se editan los datos, una réplica en JavaScript del mismo algoritmo recalcula al instante. Los resultados oficiales salen de Qiskit.
 
-**Diseño:** paleta tomada del arte oficial del Qiskit Fall Fest 2026: fondo lavanda (`#DBE4FC`), rosa de la insignia (`#FF7EB5`), morado de la pastilla «Quantum» (`#31125F`), azul del ala (`#1A41BF`) y lila (`#D4BCFF`), con la tipografía IBM Plex. La identidad peruana se ve en la banda textil y el mapa de la costa. Los colores están en el primer bloque de `css/styles.css`.
+**Diseño:** paleta tomada del arte oficial del Qiskit Fall Fest 2026: rosa de la insignia (`#FF7EB5`), morado de la pastilla «Quantum» (`#31125F`) y lila (`#D4BCFF`), con la tipografía IBM Plex. El fondo es un degradado pastel (lila, rosa y durazno) que cambia de tono lentamente, con nubes que se desplazan. La cabecera va en una sola fila: logo y título a la izquierda; motor, animaciones y tema a la derecha. La identidad peruana se ve en la banda textil y el mapa de la costa. Los colores están en el primer bloque de `css/styles.css`.
 
 **Temas:** el botón «Tema ▾» de la cabecera ofrece 9 temas: Qiskit Fall Fest (por defecto, automático según el sistema), Fall Fest claro, Fall Fest oscuro, Andino, Atardecer, Lavanda, Menta, Noche cuántica y Alto contraste. La elección se recuerda en el navegador.
 
-**Logo y animaciones:** el logo (una ruta entre montañas con un qubit en la cumbre, `img/logo.svg`) se dibuja al cargar y su qubit orbita. Hay transiciones al cambiar de sección, tarjetas que entran en cascada, contadores en los resultados, un destello en cada celda editada, el mapa que se enciende al resolver y un pulso en cada etapa de Grover. Están activadas por defecto. El botón **«Animaciones»** de la cabecera las apaga para quien prefiera menos movimiento, y la elección se recuerda.
+**Logo y animaciones:** el logo (una ruta entre montañas con un qubit en la cumbre, `img/logo.svg`) se dibuja al cargar y sigue animándose siempre: la ruta se recorre y el qubit orbita. Hay transiciones al cambiar de sección, tarjetas que entran en cascada, contadores en los resultados, un destello en cada celda editada, el mapa que se enciende al resolver y un pulso en cada etapa de Grover. Están activadas por defecto. El botón **«Animaciones»** de la cabecera las apaga para quien prefiera menos movimiento, y la elección se recuerda.
 
 ## 9. Cómo ejecutarlo
 
