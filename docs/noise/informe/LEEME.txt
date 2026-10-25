@@ -1,0 +1,8 @@
+Q-Niño: informe y datos de las pruebas con ruido
+
+Abrir INFORME_RUIDO_GROVER.pdf para leer el informe.
+Abrir DATOS_RUIDO_GROVER.xlsx para consultar todas las filas y columnas.
+Los CSV/JSON originales están en evidencia/original y la prueba adicional en evidencia/mitigation.
+Scripts y requisitos: codigo/. Comandos de reproducción: sección12 del informe.
+Las probabilidades del Excel son fracciones0..1; en el PDF se muestran porcentajes.
+No se ejecutaron trabajos en hardware IBM.
