@@ -74,7 +74,7 @@ function renderEditor(opts = {}) {
   if (opts.count) document.querySelectorAll("#dataChip .cnt").forEach(countUp);
   seg("nSel", [3, 4, 5, 6], n, resize); $("nSel").style.setProperty("--x", n - 3);
   $("names").innerHTML = `<div class="pair head"><span></span><span>Brigada</span><span></span><span>Zona</span></div>` + [...Array(n)].map((_, i) =>
-    `<div class="pair ${i >= from ? "grow" : ""}" style="--i:${i}"><span class="av" style="--c:var(${PAL[i]})">${esc((cur.brigadas[i] || "?")[0])}</span>` +
+    `<div class="pair ${i >= from ? "grow" : ""}" style="--i:${i}"><span class="av" style="--c:var(${PAL[i]});--t:var(${PAL[i] === "--otono" ? "--on-otono" : "--on-qiskit"})">${esc((cur.brigadas[i] || "?")[0])}</span>` +
     `<input type="text" maxlength="24" data-nm="brigadas" data-i="${i}" value="${esc(cur.brigadas[i])}" aria-label="Nombre de la brigada ${i + 1}">` +
     `<span class="pin" title="Zona ${i + 1}">${PIN}</span><input type="text" maxlength="24" data-nm="zonas" data-i="${i}" value="${esc(cur.zonas[i])}" aria-label="Nombre de la zona ${i + 1}"></div>`).join("");
   const mat = (key, labels) => `<tr><th></th>${labels.map((l, k) => `<th title="${esc(l)}" data-col="${k}">${esc(l)}</th>`).join("")}</tr>` + cur[key].map((row, i) =>

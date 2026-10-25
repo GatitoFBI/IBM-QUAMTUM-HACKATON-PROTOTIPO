@@ -311,7 +311,7 @@ html.motion .flist li:hover .fn{transform:rotate(360deg)}
 /* Brigadas → zonas */
 .names .pair{grid-template-columns:30px minmax(0,1fr) 22px minmax(0,1fr);gap:8px}
 .names .pair.head span{font:600 .74rem var(--mono);text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
-.av{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font:700 .9rem var(--sans);background:var(--c);color:var(--on-qiskit)}
+.av{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font:700 .9rem var(--sans);background:var(--c);color:var(--t,var(--on-qiskit))}
 .pin{display:grid;place-items:center;color:var(--otono-ink)}
 .names input{padding:8px 10px}
 
