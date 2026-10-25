@@ -1,23 +1,27 @@
 /* Q-Niño · estilos
-   Paleta: morado Qiskit (IBM Quantum) + naranja otoñal del Fall Fest + azul PUCP.
-   Valores aproximados: si tienen el logo oficial del evento, pegan aquí los hex exactos. */
+   Paleta del Qiskit Fall Fest 2026 (muestreada de su arte oficial): fondo lavanda #DBE4FC, nubes #EEF1F9,
+   rosa de la insignia #FF7EB5, morado de la pastilla «Quantum» #31125F, azul del ala #1A41BF y lila #D4BCFF.
+   --otono es el acento rosa para rellenos; --otono-ink es su versión oscura para texto. */
 :root{
-  --qiskit:#6929c4; --qiskit-2:#8a3ffc; --otono:#d95f02; --pucp:#0b2a5b; --on-pucp:#ffffff;
-  --bg:#f5f3fa; --surface:#ffffff; --sunk:#ece8f6; --ink:#17132a; --muted:#5f5976; --line:#ddd6ec;
-  --resto:#cfc4e6; --void:#d3cfdd; --ok:#198038; --bad:#da1e28;
+  --qiskit:#31125F; --qiskit-2:#1A41BF; --otono:#FF7EB5; --otono-ink:#A3155F; --pucp:#31125F; --on-pucp:#ffffff;
+  --on-qiskit:#ffffff; --on-otono:#31125F;
+  --bg:#DBE4FC; --surface:#ffffff; --sunk:#EEF1F9; --ink:#1B0B36; --muted:#57527A; --line:#C6D0F0;
+  --resto:#D4BCFF; --void:#C9CEE3; --ok:#198038; --bad:#da1e28;
   --sans:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;
   --cond:"IBM Plex Sans Condensed","IBM Plex Sans","Segoe UI",system-ui,sans-serif;
   --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --qiskit:#a56eff; --qiskit-2:#be95ff; --otono:#ff832b; --pucp:#102f63; --on-pucp:#ffffff;
-  --bg:#0e0b18; --surface:#161229; --sunk:#1f1937; --ink:#ece8f7; --muted:#a29bbb; --line:#2d2647;
-  --resto:#3e3560; --void:#2a2540; --ok:#42be65; --bad:#ff8389; color-scheme:dark;
+  --qiskit:#C4A5FF; --qiskit-2:#7D98FF; --otono:#FF7EB5; --otono-ink:#FF9FCB; --pucp:#31125F; --on-pucp:#ffffff;
+  --on-qiskit:#1B0B36; --on-otono:#1B0B36;
+  --bg:#110A22; --surface:#1B1233; --sunk:#241A44; --ink:#EEF1F9; --muted:#A9A3C8; --line:#352A5E;
+  --resto:#4B3A7C; --void:#2B2547; --ok:#42be65; --bad:#ff8389; color-scheme:dark;
 }}
 :root[data-theme="dark"]{
-  --qiskit:#a56eff; --qiskit-2:#be95ff; --otono:#ff832b; --pucp:#102f63; --on-pucp:#ffffff;
-  --bg:#0e0b18; --surface:#161229; --sunk:#1f1937; --ink:#ece8f7; --muted:#a29bbb; --line:#2d2647;
-  --resto:#3e3560; --void:#2a2540; --ok:#42be65; --bad:#ff8389; color-scheme:dark;
+  --qiskit:#C4A5FF; --qiskit-2:#7D98FF; --otono:#FF7EB5; --otono-ink:#FF9FCB; --pucp:#31125F; --on-pucp:#ffffff;
+  --on-qiskit:#1B0B36; --on-otono:#1B0B36;
+  --bg:#110A22; --surface:#1B1233; --sunk:#241A44; --ink:#EEF1F9; --muted:#A9A3C8; --line:#352A5E;
+  --resto:#4B3A7C; --void:#2B2547; --ok:#42be65; --bad:#ff8389; color-scheme:dark;
 }
 *{box-sizing:border-box}
 [hidden]{display:none!important}
@@ -76,12 +80,12 @@ section.view>*{min-width:0}
 .row.between{justify-content:space-between}
 .seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
 .seg button{border:0;background:var(--bg);padding:7px 12px;font:600 .86rem var(--mono);cursor:pointer}
-.seg button[aria-pressed="true"]{background:var(--qiskit);color:var(--on-pucp)}
+.seg button[aria-pressed="true"]{background:var(--qiskit);color:var(--on-qiskit)}
 .btn{border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:8px 14px;font-weight:600;cursor:pointer}
 .btn:hover{border-color:var(--qiskit-2)}
-.btn.main{background:var(--qiskit);border-color:var(--qiskit);color:var(--on-pucp)}
+.btn.main{background:var(--qiskit);border-color:var(--qiskit);color:var(--on-qiskit)}
 .btn.main:disabled{opacity:.55;cursor:progress}
-.btn.warn{color:var(--otono);border-color:var(--otono)}
+.btn.warn{color:var(--otono-ink);border-color:var(--otono)}
 label.f{display:grid;gap:4px;font-size:.8rem;color:var(--muted)}
 input[type=number],input[type=text],select{border:1px solid var(--line);background:var(--bg);border-radius:7px;padding:6px 8px;min-width:0}
 input[type=range]{accent-color:var(--otono);width:100%}
@@ -114,10 +118,10 @@ input[type=range]{accent-color:var(--otono);width:100%}
 .badge{display:inline-block;font:600 .72rem var(--mono);padding:2px 8px;border-radius:999px;background:var(--sunk);color:var(--muted)}
 .badge.ok{background:color-mix(in srgb,var(--ok) 15%,transparent);color:var(--ok)}
 .badge.q{background:color-mix(in srgb,var(--qiskit) 16%,transparent);color:var(--qiskit)}
-.badge.o{background:color-mix(in srgb,var(--otono) 15%,transparent);color:var(--otono)}
+.badge.o{background:color-mix(in srgb,var(--otono) 15%,transparent);color:var(--otono-ink)}
 .steps{list-style:none;margin:0;padding:0;display:grid;gap:10px;counter-reset:s}
 .steps li{counter-increment:s;display:grid;grid-template-columns:30px 1fr;gap:10px}
-.steps li::before{content:counter(s);width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font:700 .8rem var(--mono);background:var(--qiskit);color:var(--on-pucp)}
+.steps li::before{content:counter(s);width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font:700 .8rem var(--mono);background:var(--qiskit);color:var(--on-qiskit)}
 .formula{font:.85rem/1.7 var(--mono);background:var(--sunk);border-radius:8px;padding:8px 10px;overflow-x:auto;margin-top:4px}
 table.t{width:100%;border-collapse:collapse;font-size:.88rem}
 table.t th,table.t td{text-align:left;padding:7px 9px;border-bottom:1px solid var(--line)}
@@ -140,7 +144,7 @@ html.motion .flow{stroke-dasharray:6 6;animation:dash 1.2s linear infinite}
 .stage .t span{font-size:.84rem;opacity:.85}
 .pipe{display:flex;gap:4px;flex-wrap:wrap}
 .pipe i{font:600 .7rem var(--mono);font-style:normal;padding:3px 8px;border-radius:999px;background:var(--sunk);color:var(--muted)}
-.pipe i.on{background:var(--otono);color:var(--on-pucp)}
+.pipe i.on{background:var(--otono);color:var(--on-otono)}
 .amps{position:relative;display:grid;gap:2px;height:240px;padding:6px 0}
 .bar{position:relative;display:grid;grid-template-rows:1fr 1fr}
 .bar .up,.bar .dn{position:relative}

@@ -277,7 +277,7 @@ Qiskit 2.6.1, semilla 42, 10 ejecuciones por N y sin parada anticipada:
 
 | Sección | Qué permite |
 |---|---|
-| **Simulador** | Editar N (3–6), nombres, matrices F y D (simétricas), semilla y repeticiones. Cada cambio frente a los datos cargados se marca en naranja y se registra («F[Médica, Rescate]: 9 → 14»). Muestra el resultado, el mapa de la costa y los pasos de la solución |
+| **Simulador** | Editar N (3–6), nombres, matrices F y D (simétricas), semilla y repeticiones. Cada cambio frente a los datos cargados se marca en rosa y se registra («F[Médica, Rescate]: 9 → 14»). Muestra el resultado, el mapa de la costa y los pasos de la solución |
 | **Grover paso a paso** | Anima cada etapa (superposición → oráculo → difusión → medición) con las amplitudes de cada índice, la línea del promedio y la evolución del umbral frente a las consultas |
 | **Calculadoras** | Costo de una asignación (desglose por pares), qubits y presupuesto para cualquier N, iteraciones óptimas de Grover (simulación frente a sin²((2j+1)θ)) y conversor índice ↔ asignación |
 | **Comparador gráfico** | N! frente al presupuesto de Grover frente a las consultas medidas, en escala logarítmica hasta N = 14 |
@@ -302,7 +302,7 @@ El indicador de la cabecera dice siempre qué motor calculó el resultado:
 - **«Qiskit precalculado»:** los datos originales, verificados con Qiskit (`datos.js`).
 - **«Navegador»:** en Vercel, si se editan los datos, una réplica en JavaScript del mismo algoritmo recalcula al instante. Los resultados oficiales salen de Qiskit.
 
-**Diseño:** colores de Qiskit / IBM Quantum (morado), el naranja otoñal del Fall Fest y el azul PUCP, con la tipografía IBM Plex. La identidad peruana se ve en la chakana, la banda textil y el mapa de la costa. Los valores de color son aproximados y se ajustan en el primer bloque de `css/styles.css`.
+**Diseño:** paleta tomada del arte oficial del Qiskit Fall Fest 2026: fondo lavanda (`#DBE4FC`), rosa de la insignia (`#FF7EB5`), morado de la pastilla «Quantum» (`#31125F`), azul del ala (`#1A41BF`) y lila (`#D4BCFF`), con la tipografía IBM Plex. La identidad peruana se ve en la banda textil y el mapa de la costa. Los colores están en el primer bloque de `css/styles.css`.
 
 **Logo y animaciones:** el logo (una ruta entre montañas con un qubit en la cumbre, `img/logo.svg`) se dibuja al cargar y su qubit orbita. Hay transiciones al cambiar de sección, tarjetas que entran en cascada, contadores en los resultados, un destello en cada celda editada, el mapa que se enciende al resolver y un pulso en cada etapa de Grover. Están activadas por defecto. El botón **«Animaciones»** de la cabecera las apaga para quien prefiera menos movimiento, y la elección se recuerda.
 

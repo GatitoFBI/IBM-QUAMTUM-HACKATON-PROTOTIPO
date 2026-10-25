@@ -239,7 +239,7 @@ function drawStair(run, s) {
   const X = q => pl + (W - pl - 10) * Math.min(q, tope) / tope, Y = c => 10 + (H - pb - 10) * (cmax - c) / (cmax - cmin || 1);
   let g = ""; for (const c of [cmin, (cmin + cmax) / 2, cmax]) g += `<line x1="${pl}" x2="${W - 10}" y1="${Y(c)}" y2="${Y(c)}" stroke="var(--line)"/><text x="${pl - 6}" y="${Y(c) + 3}" text-anchor="end" font-size="9" fill="var(--muted)">${Math.round(c)}</text>`;
   g += `<line x1="${pl}" x2="${W - 10}" y1="${Y(cmin)}" y2="${Y(cmin)}" stroke="var(--qiskit)" stroke-dasharray="4 4"/><text x="${W - 12}" y="${Y(cmin) - 4}" text-anchor="end" font-size="9" fill="var(--qiskit)">óptimo ${cmin}</text>`;
-  if (R.M <= tope) g += `<line x1="${X(R.M)}" x2="${X(R.M)}" y1="10" y2="${H - pb}" stroke="var(--otono)" stroke-dasharray="2 3"/><text x="${X(R.M) + 3}" y="20" font-size="9" fill="var(--otono)">N! = ${R.M}</text>`;
+  if (R.M <= tope) g += `<line x1="${X(R.M)}" x2="${X(R.M)}" y1="10" y2="${H - pb}" stroke="var(--otono)" stroke-dasharray="2 3"/><text x="${X(R.M) + 3}" y="20" font-size="9" fill="var(--otono-ink)">N! = ${R.M}</text>`;
   g += `<text x="${pl}" y="${H - 8}" font-size="9" fill="var(--muted)">0 consultas</text><text x="${W - 10}" y="${H - 8}" text-anchor="end" font-size="9" fill="var(--muted)">presupuesto ${tope}</text>`;
   if (s >= 0) { let d = `M${X(0)},${Y(run.pasos[0].umbral)}`;
     for (let k = 0; k <= s; k++) { const p = run.pasos[k]; d += ` L${X(p.llamadas)},${Y(p.umbral)} L${X(p.llamadas)},${Y(p.mejora ? p.costo_salida : p.umbral)}`; }
@@ -251,7 +251,7 @@ function updStats(run, s) {
   const p = s >= 0 ? run.pasos[s] : null, q = p ? p.llamadas : 0;
   $("sQ").textContent = q; $("sB").textContent = p ? (p.mejora ? p.costo_salida : p.umbral) : run.pasos[0].umbral; $("sP").textContent = p ? (p.p_marcados * 100).toFixed(0) + " %" : "—";
   $("budBar").style.width = Math.min(100, q / R.presupuesto * 100) + "%"; $("budNF").hidden = R.M > R.presupuesto; $("budNF").style.left = Math.min(100, R.M / R.presupuesto * 100) + "%";
-  $("budTxt").textContent = `${q} de ${R.presupuesto} consultas del presupuesto · marca naranja = N! = ${R.M} (lo que revisa la fuerza bruta)${s === run.pasos.length - 1 ? ` · terminó con costo ${run.costo}${run.optimo ? " (óptimo ✓)" : ""}` : ""}`;
+  $("budTxt").textContent = `${q} de ${R.presupuesto} consultas del presupuesto · marca rosa = N! = ${R.M} (lo que revisa la fuerza bruta)${s === run.pasos.length - 1 ? ` · terminó con costo ${run.costo}${run.optimo ? " (óptimo ✓)" : ""}` : ""}`;
 }
 function next() { if (fi < frames.length - 1) { fi++; renderFrame(); return true; } stop(); return false; }
 function play() { if (timer) return stop(); if (fi >= frames.length - 1) { fi = -1; $("log").innerHTML = ""; } $("play").textContent = "⏸ Pausa"; tick(); }
