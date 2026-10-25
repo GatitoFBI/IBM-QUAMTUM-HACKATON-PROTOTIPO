@@ -1,0 +1,19 @@
+{
+  "check": "Uniform nonnegative route multiplier leaves the optimiser unchanged",
+  "n": 4,
+  "base_optimum": 202.0,
+  "worst_optimum": 404.0,
+  "expected_optimum": 272.7,
+  "same_minimizers": true,
+  "factors": [
+    1,
+    1.5,
+    2
+  ],
+  "weights": [
+    0.5,
+    0.3,
+    0.2
+  ],
+  "status": "illustration of algebra, not calibrated weather scenarios"
+}

@@ -14,6 +14,7 @@ https://github.com/user-attachments/assets/a18cb2cf-93af-4812-a9bf-3b399cd478b4
 |---|---|
 | Prototipo (demo en vivo) | https://q-nino.vercel.app |
 | Presentación (Canva) | https://canva.link/wpcj3x5yovmqfao |
+| Pitch para la final y datos oficiales | [Guion de 4 minutos, apoyo para el jurado y evidencia SENAMHI](docs/final/README.md) |
 | Repositorio | https://github.com/GatitoFBI/IBM-QUAMTUM-HACKATON-PROTOTIPO |
 
 - **Equipo: Quantum Action**
@@ -83,6 +84,8 @@ s.a. Σ_j x_ij = 1  ∀i      (cada brigada en una zona)
 Qiskit convierte esas igualdades en penalizaciones λ·(1 − Σx)² y el problema queda como un Hamiltoniano de Ising con **N² qubits**.
 
 ## 3. Datos y fuentes
+
+**Material para la final (25/10/2026):** [guion y evidencia reproducible](docs/final/README.md), con los originales de SENAMHI, 730 observaciones de 1998 y sus totales verificados para Miraflores y Puerto Pizarro. Estos datos sustentan el contexto climático; las matrices F/D de la demo siguen siendo sintéticas. El guion mantiene pendiente el bloque de resultados N ≥ 14.
 
 El equipo identificó fuentes oficiales y abiertas para construir F y D con datos reales (detalle en [`docs/proceso/fuentes_de_datos.html`](docs/proceso/fuentes_de_datos.html)):
 

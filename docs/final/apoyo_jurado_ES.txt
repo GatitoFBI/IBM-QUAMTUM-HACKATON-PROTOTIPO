@@ -1,0 +1,90 @@
+Q-NIÑO | APOYO PARA EL JURADO | 25 OCT 2026
+Estado: bloque de escalabilidad pendiente de los resultados N>=14 del equipo.
+
+EN QUÉ CONCENTRAR EL PITCH
+Las bases asignan 25 puntos a modelo/datos/factibilidad, 30 a Qiskit y justificación, 20 a calidad/comparación, 15 a rigor/escalamiento y 10 a claridad/sentido operativo. El discurso debe mostrar evidencia técnica además de la historia humanitaria.
+La imagen del equipo identifica perfiles de industria, física, ingeniería y computación. No se han investigado ni inferido preferencias personales de los jueces.
+
+REPARTO SUGERIDO
+Sebastian: problema y cierre, 45 s en total.
+Jefry (matemático): modelo y resultados, 80 s en total.
+Luis (desarrollador): implementación, Qiskit y demo, 70 s en total.
+Fabricio (ciberseguridad): aporte verificable y oportunidades, 30 s; procedencia y límites en las preguntas.
+Margen final: 15 s. Total máximo: 240 s.
+Luis opera la demo mientras explica; debe practicar los clics y evitar explicar cada navegación.
+La responsabilidad de Fabricio en el pitch es la confianza en la evidencia. Su perfil no implica que el prototipo tenga auditoría de seguridad, cifrado u otras funciones no verificadas.
+
+RESPONSABLES DE LAS PREGUNTAS
+Jefry: modelo, QUBO, factibilidad, interpretación de métricas y escalabilidad.
+Luis: código, circuitos Qiskit, ejecución, representación y demo.
+Fabricio: procedencia de datos, reproducibilidad, límites de la validación y condiciones para un uso operativo.
+Sebastian: necesidad, usuario, propuesta de valor y próximos pasos.
+
+PREGUNTAS QUE CONVIENE ENSAYAR
+
+1. ¿Dónde está la ventaja cuántica?
+La mejora teórica está en consultas a un oráculo dentro de búsqueda sin estructura. El prototipo no acredita ahorro total de tiempo o dinero: precalcula la tabla completa de costes y simula los circuitos clásicamente. Los registros pequeños tampoco muestran menos consultas totales. La prueba N>=14 deberá separar lo medido de esa oportunidad teórica.
+
+2. ¿Por qué Grover en vez de QAOA?
+Nos permite explorar directamente un índice de permutaciones y observar la amplificación de amplitud. QAOA y QUBO sirvieron para estudiar otra formulación. Los experimentos existentes no prueban que Grover supere universalmente a QAOA; cambian formulación, representación y configuración.
+
+3. ¿Qué hace Qiskit de verdad?
+QuantumCircuit representa la superposición y la difusión. DiagonalGate implementa un oráculo de fase idealizado. Statevector simula las probabilidades y un muestreo clásico selecciona el resultado. El control adaptativo, la tabla de costes y la comparación de candidatos son clásicos. No se ejecutó en una QPU en los experimentos pequeños revisados.
+
+4. ¿Es QUBO obligatorio? ¿Cuál era el modelo?
+Las bases permiten otros enfoques con Qiskit. En QUBO se usa x_ij binaria y se suma al coste la penalización lambda por cada fila o columna cuya suma difiera de uno, elevada al cuadrado. Lambda debe justificarse. La versión Grover utiliza un índice de permutaciones; no necesita convertir su búsqueda a QUBO.
+
+5. ¿Por qué cinco qubits no garantizan un optimizador completo?
+Cinco qubits representan 32 índices y solo 24 corresponden a permutaciones de N=4. Los otros ocho pueden medirse y se descartan. El candidato final conservado es válido. Coste, comparación y descomputación requieren recursos adicionales en una implementación reversible. No decir que nunca aparecen mediciones inválidas.
+
+6. ¿Cuarenta de cuarenta implica garantía?
+Son diez corridas en cada una de cuatro matrices sintéticas, con configuración registrada. Todas devolvieron una asignación de coste óptimo en ese conjunto. No prueba éxito universal ni generalización a datos distintos. Se recalcularon los costes desde F y D para verificar esas salidas; no se volvieron a ejecutar aquí los circuitos.
+
+7. ¿Cómo se escala a N>=14?
+Responder con la implementación y las mediciones que entregue el equipo. No presentar una curva factorial o un número de qubits como experimento. Si se usó descomposición, explicar qué variables se fijan, cómo se mantiene una permutación global válida y cómo se incluye el coste de interacción entre el bloque y las asignaciones fijadas. Comparar con el mismo procedimiento usando un solucionador clásico de los bloques.
+
+8. ¿Por qué no usar mejores algoritmos clásicos?
+La fuerza bruta certifica óptimos en casos pequeños. La evaluación de escalabilidad debe incluir un baseline clásico competitivo para el mismo objetivo, por ejemplo búsqueda local con reinicios o un solver apropiado, y presupuesto comparable. Una mejora frente a enumeración no equivale a superar el estado del arte.
+
+9. ¿Son datos reales de El Niño? ¿Qué significa 202?
+El contexto está sustentado con registros oficiales: sumamos 1.857,7 mm en la estación Miraflores de SENAMHI en 1998, con 365 valores sin faltantes. El coste 202 pertenece a la matriz sintética de la demo y representa coordinación ponderada, no horas reales de respuesta. El uso operativo requiere vincular los datos climáticos con rutas, capacidades y prioridades. Se conserva el archivo fuente, el cálculo y su verificación.
+
+10. ¿La incertidumbre multiplica la ventaja?
+Repetir decisiones puede acumular un ahorro por ejecución, si antes se demuestra. No aumenta automáticamente su factor relativo. Evaluar múltiples escenarios también aumenta el trabajo de cada consulta. Monte Carlo y optimización robusta son extensiones pendientes salvo evidencia nueva.
+
+11. El vídeo dice ~5 consultas en N=4, pero la web muestra 141. ¿Por qué?
+Corresponden a versiones distintas. El vídeo audita el notebook original con parada anticipada; su contador 4,6 mezcla dos aplicaciones de fase con intentos de cero iteraciones y omite trabajo clásico. La versión publicada elimina aquella parada y consume un presupuesto mayor: media del contador 141,1 en N=4. Ninguna cifra por sí sola representa ahorro de coste total. En el pitch usar los datos del código que se esté mostrando.
+
+12. ¿Un computador cuántico real sería más rápido que el simulador?
+El hardware evita representar explícitamente el vector de estado completo como hace esta simulación clásica. Eso abre una oportunidad, pero no determina el tiempo total. Hay que medir circuitos compilados, repeticiones, oráculo, ruido y procesamiento clásico, distinguiendo tiempo QPU y espera. No existe aún esa medición en el experimento presentado. Referencia: https://quantum.cloud.ibm.com/docs/en/guides/estimate-job-run-time
+
+ÉNFASIS DEL DISCURSO
+Presentar primero el aporte actual y el valor futuro. Una frase delimita lo medido; el detalle técnico queda disponible para preguntas. La meta es mostrar decisiones verificables y una vía de investigación relevante, sin convertir una proyección en resultado experimental.
+
+13. ¿Cómo se obtuvieron los datos oficiales?
+Se descargó el HTML público del Histograma de cada estación de SENAMHI. Se agruparon las observaciones por la etiqueta explícita 1998 y se sumaron con aritmética decimal: 1.857,7 mm en Miraflores (000207) y 2.433,6 mm en Puerto Pizarro (000132), 365 valores sin faltantes en cada caso. Se recalcularon los resultados desde los originales mediante dos comprobaciones independientes. Las series son históricas; los totales no dependen de inferir fechas diarias. El comunicado ENFEN 18-2026 aporta contexto reciente, identificado como pronóstico.
+Fuentes: https://www.senamhi.gob.pe/site/descarga-datos/descarga/?cod=000207 ; https://www.senamhi.gob.pe/site/descarga-datos/descarga/?cod=000132 ; https://enfen.imarpe.gob.pe/download/comunicado-oficial-enfen-n-18-2026/
+
+DATOS QUE NECESITA EL BLOQUE FINAL
+- Instancia N=10 y N>=14: F/D o archivo, origen y semilla.
+- Código y revisión usados; dónde interviene Qiskit.
+- Mismas restricciones y definición de coste para ambos métodos.
+- Asignación final y comprobación de factibilidad por ejecución.
+- Coste mejor/mediano y dispersión entre semillas; referencia para el gap.
+- Tiempo total, incluyendo preparación, generación del oráculo, optimización y reparación.
+- Memoria medida y alcance de esa medición.
+- Coste de la tabla completa y tamaño real de los subproblemas, si corresponde.
+Un resultado negativo también sirve: explicar qué limita al enfoque, con datos.
+
+FUENTES
+Bases originales compartidas por la organización, «Reto_NTT_DATA.pdf», pp. 2–4 (no incluidas en este paquete).
+El requisito N>=14 para finalistas está en p.3; la rúbrica está en p.4.
+Repositorio: https://github.com/GatitoFBI/IBM-QUAMTUM-HACKATON-PROTOTIPO
+Código: https://github.com/GatitoFBI/IBM-QUAMTUM-HACKATON-PROTOTIPO/blob/main/qiskit_grover.py
+Datos registrados: https://github.com/GatitoFBI/IBM-QUAMTUM-HACKATON-PROTOTIPO/blob/main/datos.js
+Demo inspeccionada: https://q-nino.vercel.app/#simulador
+Dürr–Høyer, minimum finding: https://arxiv.org/abs/quant-ph/9607014
+Boyer–Brassard–Høyer–Tapp, búsqueda con número de marcados desconocido: https://arxiv.org/abs/quant-ph/9605034
+
+NOTA DE VERIFICACIÓN
+Se leyeron código, trazas y web del prototipo. Referencia del repositorio al publicar este material: 8d407b4b366627c1d9a8eb9fdbfc8ec4f2b80c2c; esta revisión conserva los resultados verificados y solo actualiza el diagrama de ejemplo N=3 respecto a la revisión anterior. Se recalcularon por enumeración los costes de las permutaciones guardadas, usando F y D; coinciden las tablas y los óptimos 285, 202, 415 y 933. Las cuarenta salidas guardadas son permutaciones válidas y óptimas para sus respectivas matrices. Esta comprobación no es una nueva ejecución Qiskit ni una validación N>=14.

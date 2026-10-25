@@ -1,0 +1,44 @@
+Q-NIÑO | TEXTO PARA LA DIAPOSITIVA DE VENTAJAS
+
+TÍTULO
+De comparar asignaciones a mejorar la coordinación
+
+APORTE HOY
+• Decisiones que se pueden revisar: asignación, coste y comparación clásica.
+• Representación compacta: 24 asignaciones en 5 qubits de índice para N=4.
+• Prototipo reproducible: datos, semillas y circuitos Qiskit identificados.
+
+OPORTUNIDAD
+• Reoptimizar al actualizar rutas, condiciones o información de campo.
+• Explorar menos consultas con Grover cuando evaluar una alternativa resulte costoso.
+• Conectar registros oficiales con escenarios logísticos calibrados.
+
+META
+Convertir el potencial de menos consultas en decisiones logísticas menos costosas.
+
+NOTA BREVE AL PIE
+Ventaja de consultas teórica frente a búsqueda sin estructura. Ahorro total y tiempo en QPU por medir.
+
+LOCUCIÓN SUGERIDA (FABRICIO, ~30 s)
+Nuestro aporte es que cada decisión se puede revisar: qué brigada va a cada zona, qué relaciones pesan más y cómo se compara con una referencia clásica. La oportunidad es reoptimizar cuando cambien las rutas o la información disponible. La mejora de consultas de Grover es teórica; convertirla en ahorro operativo es nuestra siguiente validación.
+
+SI PREGUNTAN POR EL TIEMPO DEL SIMULADOR
+"Hoy simulamos qubits en un ordenador clásico. Ese trabajo tiene una sobrecarga que no predice el tiempo de una QPU. El hardware ejecuta el circuito directamente; la siguiente comparación medirá duración, repeticiones y trabajo completo para comprobar el ahorro."
+
+PRECISIÓN PARA QUIEN RESPONDA
+Una QPU evita representar explícitamente las 2^q amplitudes de un simulador statevector. Esto no garantiza que el programa completo sea más rápido: importan la síntesis del oráculo, profundidad, mediciones/repeticiones, ruido y procesamiento clásico. En servicio remoto, separar tiempo QPU de espera y latencia. La comparación debe conservar problema, calidad de solución y probabilidad de éxito comparables.
+En los casos pequeños registrados el clásico fue más rápido. Mantener esa cifra en la tabla técnica y responderla directamente si se pregunta; no convertirla en un titular sobre el rendimiento de hardware que no se probó.
+
+FORMULACIONES A USAR
+"Potencial de reducción de consultas".
+"Oportunidad de menor coste al repetir decisiones".
+"El simulador no mide el tiempo de hardware cuántico".
+"Siguiente validación: ventaja completa con un oráculo eficiente".
+
+FUENTE SOBRE TIEMPO DE HARDWARE
+IBM Quantum, Workload usage:
+https://quantum.cloud.ibm.com/docs/en/guides/estimate-job-run-time
+La estimación de ejecución depende de duración del circuito, shots y sobrecargas. Una duración medida en simulación no sustituye esa medición.
+
+NOTA SOBRE LA IMAGEN COMPARTIDA
+El presupuesto teórico no prueba una ventaja práctica desde N=7. La cifra ~77 y la parada anticipada corresponden al notebook original, no a los resultados actuales sin esa parada. El coste mostrado es ponderado por la interacción; no son horas reales de respuesta. Mantener esas precisiones en el soporte técnico.

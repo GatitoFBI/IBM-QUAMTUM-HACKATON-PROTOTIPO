@@ -1,0 +1,38 @@
+Q-NIÑO | FUENTES OFICIALES PARA EL PITCH
+Consulta: 25/10/2026. Documento de contexto, separado de los resultados del optimizador.
+
+F01 | ESTADO OFICIAL DE ALERTA
+Fuente: Comisión ENFEN, Comunicado Oficial 18-2026, 16/10/2026, página 1.
+Enlace: https://enfen.imarpe.gob.pe/download/comunicado-oficial-enfen-n-18-2026/
+Hecho: el comunicado identifica el estado de alerta de El Niño Costero.
+Uso: apertura del pitch. El documento fecha la afirmación; no acredita una emergencia específica ni la situación de una carretera.
+
+F02 | PRONÓSTICO REGIONAL DE PRECIPITACIÓN
+Misma fuente, página 2, apartado Lluvias.
+Contenido: previsión de lluvia por encima de lo normal en la costa norte y central y sierra norte occidental para el resto de 2026 y el verano de 2027.
+Tipo: previsión oficial regional, no precipitación observada en una estación.
+Uso: justifica estudiar escenarios. No equivale a probabilidad de una vía bloqueada ni es un multiplicador calibrado de horas de viaje.
+
+F03 | REGISTRO OBSERVACIONAL DE SENAMHI, PIURA, 1998
+Fuente: Histograma de la estación Miraflores (código 000207), Piura.
+Enlace: https://www.senamhi.gob.pe/site/descarga-datos/descarga/?cod=000207
+Dato: 1.857,7 mm acumulados en el año 1998.
+Procedimiento: suma propia de los 365 valores de precipitación con etiqueta explícita 1998 en el HTML oficial; no hay valores null en ese año. No se usa una fecha diaria inferida para este total.
+Verificación adicional independiente: suma independiente con aritmética decimal desde el HTML original, guardada en SENAMHI_ANNUAL_CHECK.json. Coincide con la extracción del equipo de análisis.
+Uso en pitch: "más de 1.800 milímetros". En la pantalla, mostrar el valor completo y la procedencia.
+Alcance: observaciones históricas de una estación, sin bandera de control de calidad publicada en el histograma; no promedio regional ni dato actual.
+
+F04 | REGISTRO OBSERVACIONAL DE SENAMHI, TUMBES, 1998
+Fuente: Histograma de Puerto Pizarro (código 000132), Tumbes.
+Enlace: https://www.senamhi.gob.pe/site/descarga-datos/descarga/?cod=000132
+Dato: 2.433,6 mm acumulados en 1998, suma propia de 365 registros sin faltantes. Verificación decimal independiente guardada junto a F03.
+Uso: evidencia de apoyo, no comparación de riesgo entre departamentos. Cada estación representa una ubicación puntual.
+
+TRAZABILIDAD
+Q_Nino_Datos_Oficiales.zip conserva los dos HTML originales de SENAMHI y el PDF de ENFEN, los CSV derivados, el script de verificación y MANIFEST.json con las huellas SHA-256.
+Se comprobó también la página oficial y el texto de las dos páginas de su PDF enlazado.
+La auditoría incluida abarca una investigación más amplia; este paquete seleccionado utiliza C1, C2, C5 y la integridad de los archivos seleccionados. No incluye afirmaciones opcionales sin auditar. Ver README.md para reproducir la comprobación.
+
+RELACIÓN CON EL MODELO
+Estos datos contextualizan el problema. No sustituyen automáticamente F (coordinación) ni D (tiempos entre zonas).
+La demo y los 40 resultados pequeños del pitch siguen siendo experimentos sintéticos. Los resultados N>=14 siguen pendientes de recepción por el equipo.
