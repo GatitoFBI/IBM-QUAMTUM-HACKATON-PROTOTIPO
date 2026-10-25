@@ -339,62 +339,6 @@ Q-Niño convierte un problema complejo en decisiones que podemos examinar. Busca
 <div id="help">← → o clic: avanzar · F: pantalla completa · N: notas y cronómetro</div>
 <div id="hud"><button id="bPrev" type="button">←</button><button id="bNext" type="button">→</button><button id="bNotes" type="button">Notas</button><button id="bFull" type="button">Pantalla completa</button></div>
 
-<script>
-const S = [...document.querySelectorAll(".slide")], deck = document.getElementById("deck");
-let cur = 0, t0 = null;
-
-// Escala el lienzo de 1600×900 a la ventana
-function fit() { const k = Math.min(innerWidth / 1600, innerHeight / 900); deck.style.transform = `translate(-50%, -50%) scale(${k})`; }
-addEventListener("resize", fit); fit();
-
-// Partículas y lluvia (decorativas)
-document.querySelectorAll(".dots").forEach(d => { for (let i = 0; i < 26; i++) { const e = document.createElement("i"); e.style.left = Math.random() * 100 + "%"; e.style.top = 40 + Math.random() * 60 + "%"; e.style.animationDelay = -Math.random() * 9 + "s"; e.style.animationDuration = 7 + Math.random() * 6 + "s"; d.appendChild(e); } });
-document.querySelectorAll(".rain").forEach(r => { for (let i = 0; i < 40; i++) { const e = document.createElement("i"); e.style.left = Math.random() * 100 + "%"; e.style.animationDelay = -Math.random() * 1.1 + "s"; e.style.animationDuration = .8 + Math.random() * .6 + "s"; r.appendChild(e); } });
-
-// Contadores
-const fmt = (v, dec) => { const [i, d] = v.toFixed(dec).split("."); return i.replace(/\B(?=(\d{3})+(?!\d))/g, ".") + (d ? "," + d : ""); };   // 1.857,7
-function counters(sl) {
-  sl.querySelectorAll("[data-count]").forEach(el => {
-    const to = +el.dataset.count, dec = +(el.dataset.dec || 0), wait = +(el.dataset.delay || 900), dur = 1300;
-    el.textContent = fmt(0, dec); clearTimeout(el._t);
-    el._t = setTimeout(() => { const s = performance.now(); const step = now => { const k = Math.min(1, Math.max(0, (now - s) / dur)), e = 1 - Math.pow(1 - k, 3); el.textContent = fmt(to * e, dec); if (k < 1) requestAnimationFrame(step); }; requestAnimationFrame(step); }, wait);
-  });
-}
-
-// Ciclo del diagrama de Grover: la etapa activa recorre el bucle
-let pipeTimer = null;
-function pipe(on) {
-  clearInterval(pipeTimer); const st = [...document.querySelectorAll("#pipe .st")]; st.forEach(s => s.classList.remove("hot"));
-  if (!on) return; let i = 0;
-  setTimeout(() => { pipeTimer = setInterval(() => { st.forEach(s => s.classList.remove("hot")); st[i % st.length].classList.add("hot"); i++; }, 1100); }, 1600);
-}
-
-function go(n) {
-  n = Math.max(0, Math.min(S.length - 1, n));
-  S.forEach((s, i) => { if (i !== n) s.classList.remove("on"); });
-  const s = S[n]; s.classList.remove("on"); void s.offsetWidth; s.classList.add("on");   // reinicia las entradas
-  cur = n; counters(s); pipe(n === 2);
-  document.getElementById("bar").style.width = ((n + 1) / S.length * 100) + "%";
-  document.getElementById("nSlide").textContent = `Diapositiva ${n + 1} / ${S.length}`;
-  document.getElementById("nText").innerHTML = s.dataset.notes.split("\n").map(p => `<p>${p}</p>`).join("");
-  history.replaceState(null, "", "#" + (n + 1));
-}
-const next = () => go(cur + 1), prev = () => go(cur - 1);
-addEventListener("keydown", e => {
-  if (["ArrowRight", "PageDown", " ", "Enter"].includes(e.key)) { e.preventDefault(); next(); }
-  else if (["ArrowLeft", "PageUp", "Backspace"].includes(e.key)) { e.preventDefault(); prev(); }
-  else if (e.key === "Home") go(0); else if (e.key === "End") go(S.length - 1);
-  else if (e.key.toLowerCase() === "f") full();
-  else if (e.key.toLowerCase() === "n") notes();
-});
-document.getElementById("stage").addEventListener("click", e => { if (e.target.closest("a")) return; (e.clientX < innerWidth * .25 ? prev : next)(); });
-function full() { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen().catch(() => {}); }
-function notes() { const n = document.getElementById("notes"); n.hidden = !n.hidden; if (!t0) t0 = Date.now(); }
-document.getElementById("bPrev").onclick = prev; document.getElementById("bNext").onclick = next;
-document.getElementById("bNotes").onclick = notes; document.getElementById("bFull").onclick = full;
-setInterval(() => { if (!t0) return; const s = Math.floor((Date.now() - t0) / 1000); document.getElementById("nTime").textContent = `${String(s / 60 | 0).padStart(2, "0")}:${String(s % 60).padStart(2, "0")} / 04:00`; }, 500);
-setTimeout(() => document.getElementById("help").style.opacity = 0, 6000);
-go((parseInt(location.hash.slice(1)) || 1) - 1);
-</script>
+<script src="/slides/deck.js"></script>
 </body>
 </html>
