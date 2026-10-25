@@ -267,6 +267,7 @@ function mapTiles() { // OpenStreetMap estándar; en modo oscuro se oscurece con
     attribution: '© <a href="https://www.openstreetmap.org/copyright">colaboradores de OpenStreetMap</a>' }).addTo(LM);
 }
 const zoneLatLng = (z, j, n) => Z[z] || (() => { const c = COAST[Math.round(2 + j * (COAST.length - 4) / Math.max(1, n - 1))]; return [c[0], c[1] + 0.6]; })();
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { mapTiles(); if (LM) drawMap(); });
 function drawMapReal(asg, Fm) {
   if (!LM) { LM = L.map("mapReal", { scrollWheelZoom: false, zoomSnap: .25 }); mapTiles(); LG = L.layerGroup().addTo(LM); }
   LG.clearLayers();

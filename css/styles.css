@@ -445,3 +445,48 @@ html.motion .tile:hover,html.motion .ra:hover,html.motion .rp:hover{transform:tr
 @keyframes growH{from{transform:scaleY(0)}}
 @keyframes donut{from{stroke-dashoffset:var(--c)}}
 @keyframes slideR{from{transform:translateX(-12px);opacity:0}}
+
+/* ---------------- Fondo pastel del Qiskit Fall Fest ----------------
+   Degradado lavanda → lila → rosa con manchas suaves y nubes, como el arte del evento. */
+:root{
+  --sky-0:#E2E9FF; --sky-1:#EEE5FF; --sky-2:#FDE7F2;
+  --sky-a:#FFC9E1; --sky-b:#D5C2FF; --sky-c:#C3D4FF; --cloud:#FFFFFF; --cloud-o:.75;
+  --glass:color-mix(in srgb,var(--surface) 80%,transparent);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --sky-0:#100A22; --sky-1:#1A0F38; --sky-2:#24102E;
+  --sky-a:#5A1E4C; --sky-b:#3B1F72; --sky-c:#1C2B6E; --cloud:#8F7CFF; --cloud-o:.10;
+  --glass:color-mix(in srgb,var(--surface) 78%,transparent);
+}}
+:root[data-theme="dark"]{
+  --sky-0:#100A22; --sky-1:#1A0F38; --sky-2:#24102E;
+  --sky-a:#5A1E4C; --sky-b:#3B1F72; --sky-c:#1C2B6E; --cloud:#8F7CFF; --cloud-o:.10;
+  --glass:color-mix(in srgb,var(--surface) 78%,transparent);
+}
+body{background:linear-gradient(160deg,var(--sky-0) 0%,var(--sky-1) 45%,var(--sky-2) 100%) fixed}
+.sky{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden;
+  background:
+    radial-gradient(45% 40% at 8% 12%,var(--sky-a) 0,transparent 70%),
+    radial-gradient(40% 38% at 92% 8%,var(--sky-b) 0,transparent 70%),
+    radial-gradient(50% 45% at 85% 92%,var(--sky-c) 0,transparent 70%),
+    radial-gradient(40% 35% at 6% 88%,var(--sky-b) 0,transparent 70%);
+  background-size:130% 130%;background-position:0 0}
+/* Nubes: tres círculos superpuestos, como las del arte oficial */
+.sky i{position:absolute;display:block;width:340px;height:120px;border-radius:120px;background:var(--cloud);opacity:var(--cloud-o);filter:blur(2px)}
+.sky i::before,.sky i::after{content:"";position:absolute;border-radius:50%;background:var(--cloud)}
+.sky i::before{width:150px;height:150px;left:50px;top:-70px}
+.sky i::after{width:190px;height:190px;left:140px;top:-110px}
+.sky .c1{left:-60px;top:34%}
+.sky .c2{right:-80px;top:62%;transform:scale(1.2)}
+.sky .c3{left:38%;top:92%;transform:scale(.9)}
+/* Tarjetas y menú translúcidos para que se vea el fondo */
+.card,nav.menu,.tile,.matbox,.rp,.ra{backdrop-filter:blur(10px)}
+.card{background:var(--glass)}
+nav.menu{background:color-mix(in srgb,var(--surface) 72%,transparent)}
+footer{background:color-mix(in srgb,var(--surface) 55%,transparent)}
+html.motion .sky{animation:skyShift 28s ease-in-out infinite alternate}
+html.motion .sky .c1{animation:cloud 60s linear infinite}
+html.motion .sky .c2{animation:cloud 80s linear infinite reverse}
+html.motion .sky .c3{animation:cloud 95s linear infinite}
+@keyframes skyShift{to{background-position:6% 4%,-5% 6%,4% -6%,-4% -3%}}
+@keyframes cloud{0%{translate:0 0}50%{translate:120px -14px}100%{translate:0 0}}
