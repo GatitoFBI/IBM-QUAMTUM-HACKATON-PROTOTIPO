@@ -201,7 +201,7 @@ if __name__ == "__main__":
         if n in N_ANIMADOS:
             inst["lab"] = laboratorio(costos, n_q)
         if n == 3:
-            ejemplo = [i for i in range(len(costos)) if costos[i] < sorted(costos)[3]]
+            ejemplo = [costos.index(min(costos))]   # un solo índice marcado, como en la web
             inst["circuito_texto"] = str(circuito_grover(n_q, ejemplo, 1).draw(output="text", fold=-1))
         salida["instancias"][n] = inst
 

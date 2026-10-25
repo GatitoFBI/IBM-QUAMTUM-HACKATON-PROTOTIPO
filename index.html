@@ -184,7 +184,11 @@
         <li><code>Statevector</code>: amplitudes exactas y probabilidades para medir.</li>
         <li>Backend <code>api.py</code> (FastAPI) para ejecutar Qiskit en vivo con los datos editados.</li>
       </ul>
-      <h3>Circuito para N = 3, una iteración (salida de Qiskit)</h3><pre class="code" id="circ"></pre></div>
+      <h3>Una iteración de Grover para N = 3 (3 qubits)</h3>
+      <div class="scroll"><svg class="circuit" id="circSvg" viewBox="0 0 730 200" role="img" aria-label="Circuito de Grover de 3 qubits dividido en superposición, oráculo, difusión y medición"></svg></div>
+      <ol class="cstages" id="circSteps"></ol>
+      <p class="formula" id="circProb"></p>
+      <details><summary class="small">Ver el circuito tal como lo imprime Qiskit (<code>qc.draw()</code>)</summary><pre class="code" id="circ"></pre></details></div>
     <div class="card"><h3>Lo que esto es y lo que no es</h3><ol class="steps">
       <li><span><b>Oráculo idealizado.</b> Para marcar estados, la simulación revisa la tabla de costos (N! evaluaciones). En hardware real el oráculo debe calcular el costo dentro del circuito con aritmética reversible. Por eso medimos <b>consultas</b>, no tiempo.</span></li>
       <li><span><b>El tiempo simulado no es el de una QPU:</b> simular 2<sup>qubits</sup> amplitudes crece exponencialmente.</span></li>

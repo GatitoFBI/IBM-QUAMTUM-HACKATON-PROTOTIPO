@@ -265,3 +265,14 @@ html.motion .pipe i.on{transform:translateY(-1px)}
 html.motion .mapreal .zpop{transform-box:fill-box;transform-origin:center;animation:pop .5s cubic-bezier(.3,1.6,.5,1) backwards}
 @media (max-width:600px){.mapreal{height:380px}}
 .mapreal.dark .leaflet-tile-pane{filter:invert(1) hue-rotate(200deg) brightness(.85) saturate(.6)}
+
+/* Circuito de Grover por etapas (Glosario) */
+svg.circuit{width:100%;min-width:460px;height:auto;display:block}
+svg.circuit text{font-family:var(--mono)}
+.cstages{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media (max-width:620px){.cstages{grid-template-columns:1fr}}
+.cstages li{display:grid;gap:4px;padding:10px 12px;border-radius:10px;background:color-mix(in srgb,var(--c) 9%,var(--surface));border:1px solid color-mix(in srgb,var(--c) 30%,var(--line));font-size:.88rem}
+.cstages li b{color:var(--ink);font-size:.95rem}
+details summary.small{cursor:pointer;color:var(--muted)}
+html.motion svg.circuit .cstage{transition:fill-opacity .2s}
+html.motion svg.circuit .cstage:hover{fill-opacity:.2}

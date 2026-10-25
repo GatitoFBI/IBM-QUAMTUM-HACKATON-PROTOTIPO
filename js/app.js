@@ -365,6 +365,36 @@ $("gl").innerHTML = [["QAP", "Problema de asignación cuadrática: asignar N ele
   ["Umbral", "Mejor costo encontrado hasta el momento; el oráculo marca lo que lo mejora."], ["BBHT", "Boyer, Brassard, Høyer y Tapp: elegir al azar el número de iteraciones cuando no se sabe cuántos estados están marcados."],
   ["Dürr–Høyer", "Algoritmo para encontrar el mínimo con Grover en O(√M) consultas."]].map(([t, d]) => `<dt>${t}</dt><dd>${d}</dd>`).join("");
 $("circ").textContent = Q?.instancias?.[3]?.circuito_texto || "Ejecuta qiskit_grover.py para ver el circuito.";
+
+/* Circuito de una iteración (N = 3): el mismo de qiskit_grover.py, dibujado por etapas */
+(function drawCircuit() {
+  const ys = [58, 108, 158], x0 = 46, x1 = 715;
+  const ST = [ // etapa, color, desde, hasta
+    ["1 · Superposición", "--qiskit-2", 52, 156], ["2 · Oráculo", "--otono", 166, 266],
+    ["3 · Difusión", "--qiskit", 276, 606], ["4 · Medición", "--ok", 616, 712]];
+  let s = ST.map(([t, c, a, b]) => `<rect class="cstage" x="${a}" y="14" width="${b - a}" height="172" rx="10" fill="var(${c})" fill-opacity=".09" stroke="var(${c})" stroke-opacity=".35"/>
+    <text x="${(a + b) / 2}" y="30" text-anchor="middle" font-size="11" font-weight="600" fill="var(${c === "--otono" ? "--otono-ink" : c})">${t}</text>`).join("");
+  ys.forEach((y, q) => s += `<text x="${x0 - 12}" y="${y + 4}" text-anchor="end" font-size="13" fill="var(--ink)">q${q}</text><line x1="${x0}" x2="${x1}" y1="${y}" y2="${y}" stroke="var(--muted)" stroke-width="1.5"/>`);
+  const gate = (x, q, t, c = "--qiskit-2") => `<rect x="${x - 14}" y="${ys[q] - 14}" width="28" height="28" rx="5" fill="var(${c})"/><text x="${x}" y="${ys[q] + 5}" text-anchor="middle" font-size="13" font-weight="700" fill="var(--on-pucp)">${t}</text>`;
+  const col = (x, t, c) => ys.map((_, q) => gate(x, q, t, c)).join("");
+  s += col(104, "H");
+  s += `<rect x="176" y="${ys[0] - 18}" width="80" height="${ys[2] - ys[0] + 36}" rx="7" fill="var(--otono)"/><text x="216" y="${ys[1] - 4}" text-anchor="middle" font-size="12" font-weight="700" fill="var(--on-otono)">Oráculo</text><text x="216" y="${ys[1] + 13}" text-anchor="middle" font-size="10" fill="var(--on-otono)">fase −1</text>`;
+  s += col(304, "H", "--qiskit") + col(348, "X", "--qiskit") + gate(392, 2, "H", "--qiskit");
+  s += `<line x1="436" x2="436" y1="${ys[0]}" y2="${ys[2]}" stroke="var(--qiskit)" stroke-width="2"/>${[0, 1].map(q => `<circle cx="436" cy="${ys[q]}" r="5" fill="var(--qiskit)"/>`).join("")}<circle cx="436" cy="${ys[2]}" r="12" fill="var(--surface)" stroke="var(--qiskit)" stroke-width="2"/><line x1="424" x2="448" y1="${ys[2]}" y2="${ys[2]}" stroke="var(--qiskit)" stroke-width="2"/><line x1="436" x2="436" y1="${ys[2] - 12}" y2="${ys[2] + 12}" stroke="var(--qiskit)" stroke-width="2"/>`;
+  s += gate(480, 2, "H", "--qiskit") + col(524, "X", "--qiskit") + col(568, "H", "--qiskit");
+  s += ys.map(y => `<rect x="647" y="${y - 14}" width="34" height="28" rx="5" fill="var(--surface)" stroke="var(--ok)" stroke-width="1.5"/><path d="M653 ${y + 7} A11 11 0 0 1 675 ${y + 7}" fill="none" stroke="var(--ok)" stroke-width="1.5"/><line x1="664" y1="${y + 7}" x2="672" y2="${y - 6}" stroke="var(--ok)" stroke-width="1.5"/>`).join("");
+  $("circSvg").innerHTML = s;
+
+  const k = 1; // ejemplo: un solo índice mejora el umbral (el caso donde mejor se ve la amplificación)
+  $("circSteps").innerHTML = [
+    ["--qiskit-2", "Superposición", "<code>qc.h</code> en los 3 qubits: los 2³ = 8 índices quedan con la misma amplitud (6 asignaciones válidas y 2 índices sobrantes)."],
+    ["--otono", "Oráculo", "<code>DiagonalGate</code> pone fase −1 en los índices que cuestan menos que el umbral (en el ejemplo, uno solo). Su probabilidad todavía no cambia: solo su signo."],
+    ["--qiskit", "Difusión", "<code>h</code> · <code>x</code> · (<code>h</code> + <code>mcx</code> + <code>h</code> = Z multicontrolada) · <code>x</code> · <code>h</code>: refleja las amplitudes respecto al promedio y las marcadas crecen."],
+    ["--ok", "Medición", "<code>Statevector</code> da las probabilidades y se toma un índice. Si cuesta menos que el umbral, el umbral baja y se repite."]]
+    .map(([c, t, d]) => `<li style="--c:var(${c})"><b>${t}</b><span>${d}</span></li>`).join("");
+  const th = Math.asin(Math.sqrt(k / 8)), p1 = Math.sin(3 * th) ** 2;
+  $("circProb").innerHTML = `Ejemplo: si solo 1 de los 8 índices mejora el umbral, medirlo pasa de 1/8 = ${(100 / 8).toFixed(1)} % a sin²(3θ) = <b>${(p1 * 100).toFixed(1)} %</b> con una sola iteración (θ = asin √(1/8)).`;
+})();
 $("foot").innerHTML = `<b>Q-Niño</b> · Equipo <b>Quantum Action</b>: Jefry Rojas (UNMSM), Sebastian Bimbi, Fabricio Ricapa (UTEC) y Luis Nuñez (UNI) · <a href="https://canva.link/wpcj3x5yovmqfao">Presentación</a> · <a href="https://github.com/GatitoFBI/IBM-QUAMTUM-HACKATON-PROTOTIPO">Repositorio</a> · Hackathon Qiskit Fall Fest 2026 (PUCP · Quantum Hub Perú · IEEE CS PUCP · NTT DATA). Grover Adaptive Search (Dürr y Høyer, 1996; Boyer, Brassard, Høyer y Tapp, 1998) con Qiskit${Q ? " " + Q.qiskit : ""} y NumPy. Datos de prueba y supuestos ilustrativos, no datos oficiales. Web hecha con ayuda de Claude Code. Código: qiskit_grover.py, api.py y js/grover.js.`;
 
 /* ---------------- Navegación, motor y tema ---------------- */
