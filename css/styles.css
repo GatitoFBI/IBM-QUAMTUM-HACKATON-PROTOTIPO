@@ -132,6 +132,7 @@ table.t th{font:500 .7rem var(--mono);text-transform:uppercase;letter-spacing:.0
 svg text{font-family:var(--mono)}
 .mapbox{background:var(--sunk);border-radius:10px}
 html.motion .flow{stroke-dasharray:6 6;animation:dash 1.2s linear infinite}
+html.motion .flow.stale{stroke-dasharray:3 9;animation-duration:2s}
 @keyframes dash{to{stroke-dashoffset:-12}}
 .spinner{display:inline-block;width:14px;height:14px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:spin .8s linear infinite;vertical-align:-2px}
 @keyframes spin{to{transform:rotate(360deg)}}

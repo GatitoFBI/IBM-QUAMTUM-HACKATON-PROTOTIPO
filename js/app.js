@@ -273,7 +273,7 @@ function drawMapReal(asg, Fm) {
   LG.clearLayers();
   const n = cur.F.length, pts = cur.zonas.map((z, j) => zoneLatLng(z, j, n)), fresh = mapFresh && asg;
   if (asg) for (let i = 0; i < n; i++) for (let k = i + 1; k < n; k++)
-    L.polyline([pts[asg[i]], pts[asg[k]]], { color: cssVar("--otono"), weight: 1.5 + 6 * cur.F[i][k] / Fm, opacity: stale ? .6 : .9, dashArray: stale ? "6 8" : null, className: stale ? "" : "flow" }).addTo(LG);
+    L.polyline([pts[asg[i]], pts[asg[k]]], { color: cssVar("--otono"), weight: 1.5 + 6 * cur.F[i][k] / Fm, opacity: stale ? .6 : .9, dashArray: stale ? "6 8" : null, className: stale ? "flow stale" : "flow" }).addTo(LG);
   cur.zonas.forEach((z, j) => { const b = asg ? asg.indexOf(j) : -1;
     L.circleMarker(pts[j], { radius: b >= 0 ? 9 : 6, color: cssVar("--ink"), weight: 2, fillColor: cssVar(b >= 0 ? "--qiskit" : "--surface"), fillOpacity: 1, className: fresh ? "zpop" : "" })
       .bindTooltip(`<b>${esc(z)}</b>${b >= 0 ? `<br>${esc(cur.brigadas[b])}` : ""}`, { permanent: true, direction: j % 2 ? "left" : "right", offset: [j % 2 ? -10 : 10, 0], className: "ztip" }).addTo(LG); });
