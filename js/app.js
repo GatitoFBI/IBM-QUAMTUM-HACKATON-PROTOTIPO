@@ -635,7 +635,33 @@ $("menu").onclick = e => { const b = e.target.closest("button"); if (b) show(b.d
 function updEngine() { const el = $("engine"); el.classList.toggle("live", useBackend);
   $("engineTxt").textContent = useBackend ? `Qiskit ${backend.qiskit} en vivo · servidor local` : backend ? "Navegador (clic para usar Qiskit en vivo)" : Q ? `Navegador · referencia Qiskit ${Q.qiskit}` : "Navegador"; }
 $("engine").onclick = () => { if (!backend) return toast("Para Qiskit en vivo: ejecuta python api.py y abre http://127.0.0.1:8000"); useBackend = !useBackend; updEngine(); };
-$("theme").onclick = () => { const r = document.documentElement, d = r.dataset.theme ? r.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches; r.dataset.theme = d ? "light" : "dark"; mapTiles(); drawMap(); };
+/* Temas: el de Qiskit Fall Fest (automático) queda por defecto; la elección se recuerda */
+const TEMAS = [
+  ["fallfest", "Qiskit Fall Fest", "automático: claro u oscuro según el sistema", null, null, ["#31125F", "#FF7EB5", "#D4BCFF"]],
+  ["fallfest-claro", "Qiskit Fall Fest · claro", "siempre claro", null, "light", ["#31125F", "#FF7EB5", "#FCE6F3"]],
+  ["fallfest-oscuro", "Qiskit Fall Fest · oscuro", "siempre oscuro", null, "dark", ["#C4A5FF", "#FF7EB5", "#170A22"]],
+  ["andino", "Andino", "cochinilla, ocre y verde", "andino", "light", ["#8E1B3A", "#E9A23B", "#2F7D5B"]],
+  ["atardecer", "Atardecer", "terracota, rosa y ámbar", "atardecer", "light", ["#9A3412", "#DB2777", "#F59E0B"]],
+  ["lavanda", "Lavanda", "violeta y rosa suave", "lavanda", "light", ["#6D28D9", "#A855F7", "#EC4899"]],
+  ["menta", "Menta", "verde agua y rosa", "menta", "light", ["#0F766E", "#059669", "#F472B6"]],
+  ["noche", "Noche cuántica", "oscuro con violeta neón", "noche", "dark", ["#C084FC", "#F0ABFC", "#0B0614"]],
+  ["contraste", "Alto contraste", "negro, amarillo y blanco", "contraste", "dark", ["#FFD60A", "#FF4D8D", "#000000"]]];
+let temaActual = (() => { try { return localStorage.getItem("qnino_tema") || "fallfest"; } catch { return "fallfest"; } })();
+function aplicarTema(id, animar) {
+  const t = TEMAS.find(x => x[0] === id) || TEMAS[0], r = document.documentElement;
+  if (animar) { document.body.classList.add("retheme"); setTimeout(() => document.body.classList.remove("retheme"), 600); }
+  if (t[3]) r.dataset.palette = t[3]; else delete r.dataset.palette;
+  if (t[4]) r.dataset.theme = t[4]; else delete r.dataset.theme;
+  temaActual = t[0]; try { localStorage.setItem("qnino_tema", t[0]); } catch {}
+  $("tmenu").innerHTML = `<h4>Elige un tema</h4>` + TEMAS.map(([k, n, d, , , sw]) => `<button type="button" class="topt" role="menuitemradio" aria-checked="${k === temaActual}" data-tema="${k}"><span class="sw">${sw.map(c => `<i style="background:${c}"></i>`).join("")}</span><span>${n}<small>${d}</small></span><span class="ck">✓</span></button>`).join("");
+  if (typeof mapTiles === "function") { mapTiles(); if (LM) drawMap(); }
+}
+const abrirTemas = abrir => { $("tmenu").hidden = !abrir; $("theme").setAttribute("aria-expanded", abrir); };
+$("theme").onclick = e => { e.stopPropagation(); abrirTemas($("tmenu").hidden); };
+$("tmenu").onclick = e => { const b = e.target.closest("[data-tema]"); if (!b) return; aplicarTema(b.dataset.tema, true); abrirTemas(false); toast(`Tema: ${TEMAS.find(x => x[0] === b.dataset.tema)[1]}`); };
+document.addEventListener("click", e => { if (!e.target.closest(".tpick")) abrirTemas(false); });
+document.addEventListener("keydown", e => { if (e.key === "Escape") abrirTemas(false); });
+aplicarTema(temaActual, false);
 (async () => { try { const c = new AbortController(); setTimeout(() => c.abort(), 1500); const r = await fetch("api/salud", { signal: c.signal }); if (r.ok) { backend = await r.json(); useBackend = true; } } catch {} updEngine(); })();
 
 renderExercises(); qCalc();

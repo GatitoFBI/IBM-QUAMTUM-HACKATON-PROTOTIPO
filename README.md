@@ -304,6 +304,8 @@ El indicador de la cabecera dice siempre qué motor calculó el resultado:
 
 **Diseño:** paleta tomada del arte oficial del Qiskit Fall Fest 2026: fondo lavanda (`#DBE4FC`), rosa de la insignia (`#FF7EB5`), morado de la pastilla «Quantum» (`#31125F`), azul del ala (`#1A41BF`) y lila (`#D4BCFF`), con la tipografía IBM Plex. La identidad peruana se ve en la banda textil y el mapa de la costa. Los colores están en el primer bloque de `css/styles.css`.
 
+**Temas:** el botón «Tema ▾» de la cabecera ofrece 9 temas: Qiskit Fall Fest (por defecto, automático según el sistema), Fall Fest claro, Fall Fest oscuro, Andino, Atardecer, Lavanda, Menta, Noche cuántica y Alto contraste. La elección se recuerda en el navegador.
+
 **Logo y animaciones:** el logo (una ruta entre montañas con un qubit en la cumbre, `img/logo.svg`) se dibuja al cargar y su qubit orbita. Hay transiciones al cambiar de sección, tarjetas que entran en cascada, contadores en los resultados, un destello en cada celda editada, el mapa que se enciende al resolver y un pulso en cada etapa de Grover. Están activadas por defecto. El botón **«Animaciones»** de la cabecera las apaga para quien prefiera menos movimiento, y la elección se recuerda.
 
 ## 9. Cómo ejecutarlo
